@@ -1,0 +1,53 @@
+# Análisis del conjunto de datos
+Comenzamos leyendo el conjunto de entrenamiento y el de pruebas, añadiendo también los nombres de los atributos
+```{r}
+headers <- c("age","workclass","fnlwgt","education","education-num","marital-status","occupation","relationship","race","sex","capital-gain","capital-loss","hours-per-week","native-country", "target")
+# Read the training set:
+train <- read.table("dataset/adult.data", sep=", ", row.names=NULL)
+
+# Add header names:
+names(train) <- headers
+dim(train)
+head(train)
+```
+
+Cargamos el conjunto de pruebas.
+```{r}
+# Read the test set:
+test <- read.table("dataset/adult.test", sep=", ", row.names=NULL)
+# Add header names:
+names(test) <- headers
+dim(test)
+head(test)
+```
+
+TODO: Describir el número de atributos, número de instancias (training y test), origen del dataset, objetivo de la clasificación, etc.
+
+# Analizar missing values
+Analizar distribución de los valores (pie chart) de cada atributo
+Los missing values se identifican mediante un signo de interrogación
+Determinamos que lo mejor es omitirlos, ya que representan una minoría
+
+```{r}
+train_and_test <- rbind(train, test)
+
+dim(train)
+dim(test)
+dim(train_and_test)
+head(train_and_test)
+
+write.csv(train_and_test, "dataset/train_and_test.data", row.names=FALSE)
+
+```
+
+
+# Analizar outliers
+Edades negativas o superiores a 100, variables categóricas no especificadas en la descripción del dataset, etc.
+
+# Analizar balance del dataset
+Analizar en conjuntos separados y en el conjunto total
+
+# Analizar relaciones entre variables (Correlación)
+
+# Aplicar undersampling (Quitando missing values)
+Explicar que aplicaremos los algoritmos con y sin undersampling
