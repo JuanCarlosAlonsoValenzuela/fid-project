@@ -45,31 +45,34 @@ Como puede verse, el número de instancias de este dataframe = train + test
 # Analizar balance del dataset
 Analizar en conjuntos separados y en el conjunto total
 No hay missing values en el target (income)
+
 ```{r}
-count_target <- (train_and_test %>% group_by(workclass) %>% count())
-typeof(count_target)
-print(count_target$target)
-print(count_target$n)
+percentage_piechart <- function(dataframe, attribute_name, size_value) {
+  count_target <- (dataframe %>% group_by(!!as.name(attribute_name)) %>% count())
 
-data <- data.frame(group=count_target$workclass, value=count_target$n)
+  data <- data.frame(group=count_target[[attribute_name]], value=count_target$n)
 
-data <- data %>% 
-  arrange(desc(group)) %>%
-  mutate(prop = value / sum(data$value) *100) %>%
-  mutate(ypos = cumsum(prop)- 0.5*prop )
+  data <- data %>% 
+    arrange(desc(group)) %>%
+    mutate(prop = value / sum(data$value) *100) %>%
+    mutate(ypos = cumsum(prop)- 0.5*prop )
 
-# Create a list of strings, each strings being the concatenation of an element of value and an element of prop
-labels <- paste(data$value, round(data$prop, 1), sep="(")
+  # Create a list of strings, each strings being the concatenation of an element of value and an element of prop
+  labels <- paste(data$value, round(data$prop, 1), sep="(")
 
-ggplot(data, aes(x="", y=prop, fill=group)) +
-  geom_bar(stat="identity", width=1, color="white") +
-  coord_polar("y", start=0) +
-  theme_void() + 
-  geom_label_repel(aes(y = ypos, label = paste(labels, "%)"), collapse=""),
-                   size = 4.5, nudge_x = 2, show.legend = FALSE) +
-  #  geom_text(aes(y = ypos, label = paste(labels, "%)"), collapse=""), color = "white", size=6) +
-  ggtitle("Distribución de la variable target") +
-  theme(plot.title = element_text(hjust = 0.5, face="bold", size=20))
+  ggplot(data, aes(x="", y=prop, fill=group)) +
+    geom_bar(stat="identity", width=1, color="white") +
+    coord_polar("y", start=0) +
+    theme_void() + 
+    geom_label_repel(aes(y = ypos, label = paste(labels, "%)"), collapse=""),
+                    size = size_value, nudge_x = 1, show.legend = FALSE) +
+    ggtitle(paste("Distribución de la variable ")) +
+    theme(plot.title = element_text(hjust = 0.5, face="bold", size=20))
+}
+```
+
+```{r}
+percentage_piechart(train_and_test, "target", 6)
 ```
 
 # Analizar missing values
@@ -78,9 +81,7 @@ Analizar distribución de los valores (pie chart) de cada atributo
 Los missing values se identifican mediante un signo de interrogación
 Determinamos que lo mejor es omitirlos, ya que representan una minoría
 
-```{r}
 
-```
 
 
 # Analizar outliers
