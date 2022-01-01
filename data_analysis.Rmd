@@ -1,9 +1,16 @@
+```{r}
+# install.packages("tidyverse")
+library("tidyverse")
+# install.packages("ggplot2")
+library("ggplot2")
+```
+
 # Análisis del conjunto de datos
 Comenzamos leyendo el conjunto de entrenamiento y el de pruebas, añadiendo también los nombres de los atributos
 ```{r}
 headers <- c("age","workclass","fnlwgt","education","education-num","marital-status","occupation","relationship","race","sex","capital-gain","capital-loss","hours-per-week","native-country", "target")
 # Read the training set:
-train <- read.table("dataset/adult.data", sep=", ", row.names=NULL)
+train <- read.table("dataset/adult.data", sep=",", row.names=NULL)
 
 # Add header names:
 names(train) <- headers
@@ -14,7 +21,7 @@ head(train)
 Cargamos el conjunto de pruebas.
 ```{r}
 # Read the test set:
-test <- read.table("dataset/adult.test", sep=", ", row.names=NULL)
+test <- read.table("dataset/adult.test", sep=",", row.names=NULL)
 # Add header names:
 names(test) <- headers
 dim(test)
@@ -23,29 +30,57 @@ head(test)
 
 TODO: Describir el número de atributos, número de instancias (training y test), origen del dataset, objetivo de la clasificación, etc.
 
+Cargamos el  conjunto que contiene la combinación del conjunto de entrenamiento y pruebas, el archivo que contiene dicho conjunto ha sido creado ejecutando el script "join_training_and_test.R"
+```{r}
+# Read training and test set:
+train_and_test <- read.table("dataset/train_and_test.data", sep=",", row.names=NULL, header=TRUE)
+head(train_and_test)
+dim(train_and_test)
+```
+
+Como puede verse, el número de instancias de este dataframe = train + test
+
+# Analizar balance del dataset
+Analizar en conjuntos separados y en el conjunto total
+No hay missing values en el target (income)
+```{r}
+count_target <- (train_and_test %>% group_by(target) %>% count())
+typeof(count_target)
+print(count_target$target)
+print(count_target$n)
+
+data <- data.frame(group=count_target$target, value=count_target$n)
+
+data <- data %>% 
+  arrange(desc(group)) %>%
+  mutate(prop = value / sum(data$value) *100) %>%
+  mutate(ypos = cumsum(prop)- 0.5*prop )
+
+# Create a list of strings, each strings being the concatenation of an element of value and an element of prop
+labels <- paste(data$value, round(data$prop, 1), sep="(")
+
+ggplot(data, aes(x="", y=prop, fill=group)) +
+  geom_bar(stat="identity", width=1, color="white") +
+  coord_polar("y", start=0) +
+  theme_void() + 
+   geom_text(aes(y = ypos, label = paste(labels, "%)"), collapse=""), color = "white", size=6) +
+  ggtitle("Distribución de la variable target") +
+  theme(plot.title = element_text(hjust = 0.5, face="bold", size=20))
+```
+
 # Analizar missing values
+
 Analizar distribución de los valores (pie chart) de cada atributo
 Los missing values se identifican mediante un signo de interrogación
 Determinamos que lo mejor es omitirlos, ya que representan una minoría
 
 ```{r}
-train_and_test <- rbind(train, test)
-
-dim(train)
-dim(test)
-dim(train_and_test)
-head(train_and_test)
-
-write.csv(train_and_test, "dataset/train_and_test.data", row.names=FALSE)
 
 ```
 
 
 # Analizar outliers
 Edades negativas o superiores a 100, variables categóricas no especificadas en la descripción del dataset, etc.
-
-# Analizar balance del dataset
-Analizar en conjuntos separados y en el conjunto total
 
 # Analizar relaciones entre variables (Correlación)
 
