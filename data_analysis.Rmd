@@ -235,12 +235,32 @@ percentage_piechart_continuous_attribute <- function(dataframe, attribute_name, 
     group_by(chunks) %>%
     count(chunks)
 
-print(count_target)
+  # Convert the numeric colum 'chunk' to string
+  count_target$chunks <- as.character(count_target$chunks)
+
+  data <- data.frame(group=count_target$chunks, value=count_target$n)
+
+  data <- data %>% 
+    arrange(desc(group)) %>%
+    mutate(prop=value/sum(data$value)*100) %>%
+    mutate(ypos = cumsum(prop) - 0.5*prop )
+
+  # Create a list of strings, each strings being the concatenation of an element of value and an element of prop
+  labels <- paste(data$value, round(data$prop, 1), sep="(")
+
+  ggplot(data, aes(x="", y=prop, fill=group)) +
+    geom_bar(stat="identity", width=1, color="white") +
+    coord_polar("y", start=0) +
+    theme_void() + 
+    geom_label_repel(aes(y = ypos, label = paste(labels, "%)")),
+                    size = size_value, nudge_x = 1, show.legend = FALSE) +
+    ggtitle(paste("Distribución de la variable", attribute_name)) +
+    theme(plot.title = element_text(hjust = 0.5, face="bold", size=20))
 }
 ```	
 
 ```{r}
-
+percentage_piechart_continuous_attribute(train_and_test, "age", 5, 10, 10)
 ```
 
 # Analizar outliers
