@@ -199,35 +199,7 @@ Analizaremos cada atributo continuo, tanto su distribución como el número/porc
 También analizaremos si hay alguna correlación entre cada atributo y el target
 Eliminaremos y detectaremos outliers, como pueden ser los valores fuera de rango, este es el caso, por ejemplo, de edades negativas
 
-## Análisis del atributo continuo  age
-Contamos los valores de age inferiores a 16 (el mínimo de acuerdo a la descripción del dataset)
-y superiores a 100.
-```{r}
-# Count the values of age that are below 0 or above 100
-train_and_test %>% count(16 >= age | age >= 100)
-```	
-
-Imprimimos la distribución del atributo age, agrupado en intervalos de 10 años
-
-Podemos comprobar que no existen valores nulos para el campo age
-```{r}	
-# Print all the values of age that are not numbers
-train_and_test %>% filter(age %in% c("", "NA", "?")) %>% count()
-```
-
-```{r}
-colnames(train_and_test)	
-```
-```{r}
-# Split the age column in intervals of 10 years
-train_and_test$age <- as.numeric(train_and_test$age)
-age_intervals <- train_and_test %>%
-  mutate(decade = floor(age/10)*10) %>%
-  group_by(decade) %>%
-  count(decade) 
-
-age_intervals
-```
+Definimos la siguiente función para mostrar la distribución de cada atributo continuo en intervalos de un mismo tamaño
 
 ```{r}
 percentage_piechart_continuous_attribute <- function(dataframe, attribute_name, size_value, interval_size, normalization_value) {
@@ -259,9 +231,32 @@ percentage_piechart_continuous_attribute <- function(dataframe, attribute_name, 
 }
 ```	
 
+## Análisis del atributo continuo  age
+
+### Valores fuera de rango
+Contamos los valores de age inferiores a 16 (el mínimo de acuerdo a la descripción del dataset)
+y superiores a 100.
+
+```{r}
+# Count the values of age that are below 0 or above 100
+train_and_test %>% count(16 >= age | age >= 100)
+```	
+
+### Missing values o valores nulos
+Podemos comprobar que no existen valores nulos para el campo age
+```{r}	
+# Print all the values of age that are not numbers
+train_and_test %>% filter(age %in% c("", "NA", "?")) %>% count()
+```
+
+### Análisis de la distribución en intervalos
+Imprimimos la distribución del atributo age, agrupado en intervalos de 10 años
 ```{r}
 percentage_piechart_continuous_attribute(train_and_test, "age", 5, 10, 10)
 ```
+
+Podemos ver que la mayoría de las instancias se encuentran en el intervalo de edad de entre 20 y 40 años (x.x%)
+Existe una minoría de trabajadores que tienen 80 (0.3%) y 90 (0.1%) años. Estos valores podrían considerarse outliers.
 
 # Analizar outliers
 Edades negativas o superiores a 100, variables categóricas no especificadas en la descripción del dataset, etc.
