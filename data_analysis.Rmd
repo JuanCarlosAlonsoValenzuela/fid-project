@@ -275,22 +275,128 @@ train_and_test %>% count(0 > fnlwgt)
 ```	
 
 ### Análisis de la distribución en intervalos
+TODO: CONSIDERAR HACER DISTRIBUCIÓN POR INTERVALOS DE MISMO TAMAÑO
+```{r}
+percentage_piechart_continuous_attribute(train_and_test, "fnlwgt", 3, 100000, 100000)
+```
+
+## Análisis del atributo continuo  education_num
+Este atributo es redundante con respecto a education, por lo que será suprimido para evitar redundancia (TODO: Mostrar en correlation matrix)
+### Missing values o valores nulos
+No hay valores nulos en este atributo
+```{r}
+train_and_test %>% filter(education_num %in% c("", "NA", "?")) %>% count()
+```
+
+### Valores fuera de rango
+```{r}
+train_and_test %>% count(0 > education_num | education_num >16)
+```	
+### Análisis de la distribución en intervalos
 
 ```{r}
-percentage_piechart_continuous_attribute(train_and_test, "fnlwgt", 5, 100000, 100000)
+percentage_piechart_continuous_attribute(train_and_test, "education_num", 3, 1, 1)
+```
+
+## Análisis del atributo continuo  capital_gain
+
+### Missing values o valores nulos
+```{r}
+train_and_test %>% filter(capital_gain %in% c("", "NA", "?")) %>% count()
+```
+
+### Valores fuera de rango
+No hay valores negativos
+```{r}
+train_and_test %>% count(0 > capital_gain)
+```	
+
+### Análisis de la distribución en intervalos
+Más del 90% de la población tiene un capital_gain de entre 0 y 1000
+```{r}
+percentage_piechart_continuous_attribute(train_and_test, "capital_gain", 3, 1000, 1000)
+```
+Lo mismo ocurre si consideramos intervalos de 100 o de 10.
+```{r}
+train_and_test %>% count(0 == capital_gain)
+```	
+
+Convertiremos este atributo en una variable booleana, que valdrá 0 si el capital_gain es menor que 100, y 1 en caso contrario.
+TODO
+
+## Análisis del atributo numérico  capital_loss
+
+### Missing values o valores nulos
+```{r}
+train_and_test %>% filter(capital_loss %in% c("", "NA", "?")) %>% count()
+```
+
+### Valores fuera de rango
+```{r}
+train_and_test %>% count(0 > capital_loss)
+```	
+
+### Análisis de la distribución en intervalos
+El 95.3% de la población no tiene capital loss
+```{r}
+percentage_piechart_continuous_attribute(train_and_test, "capital_loss", 3, 10, 10)
+```
+
+```{r}
+train_and_test %>% count(0 == capital_loss)
+```
+
+## Análisis del atributo numérico  hours_per_week
+
+### Missing values o valores nulos
+No hay missing values
+```{r}
+train_and_test %>% filter(hours_per_week %in% c("", "NA", "?")) %>% count()
 ```
 
 
-
-
-## Análisis del atributo continuo  XYZ
-
 ### Valores fuera de rango
-
-### Missing values o valores nulos
+No hay valores negativos
+```{r}
+train_and_test %>% count(0 > hours_per_week)
+```	
 
 ### Análisis de la distribución en intervalos
+Crearemos los intervalos:
+- partime (0-20 horas)
+- fulltime (20-40 horas)
+- overtime (40-60 horas)
+- more(+60 horas)
+```{r}
+# Split the values of hours_per_week into intervals of 20
+convert_hours_to_categorical <- function(hours) {
+  if (hours['hours_per_week'] <= 20) {
+    return("partime")
+  } else if (hours['hours_per_week'] <= 40) {
+    return("fulltime")
+  } else if (hours['hours_per_week'] <= 60) {
+    return("overtime")
+  } else {
+    return("more")
+  }
+}
 
+```
+
+```{r}
+# Add a column to train_and_test applying the function convert_hours_to_categorical to the column hours_per_week
+
+# Convert the column hours_per_week to numerical
+train_and_test$hours_per_week <- as.numeric(train_and_test$hours_per_week)
+
+hours_per_week_categorical <- apply(train_and_test, 1, convert_hours_to_categorical)
+
+train_and_test <- cbind(train_and_test, hours_per_week_categorical=hours_per_week_categorical)
+```
+
+```{r}
+head(train_and_test)
+```	
 # Analizar outliers
 Edades negativas o superiores a 100, variables categóricas no especificadas en la descripción del dataset, etc.
 
