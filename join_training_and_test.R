@@ -1,4 +1,4 @@
-headers <- c("age","workclass","fnlwgt","education","education-num","marital-status","occupation","relationship","race","sex","capital-gain","capital-loss","hours-per-week","native-country", "target")
+headers <- c("age","workclass","fnlwgt","education","education_num","marital_status","occupation","relationship","race","sex","capital_gain","capital_loss","hours_per_week","native_country", "target")
 
 # Read the traininig set:
 train <- read.table("dataset/adult.data", sep=",", row.names=NULL)
