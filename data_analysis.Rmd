@@ -394,8 +394,9 @@ hours_per_week_categorical <- apply(train_and_test, 1, convert_hours_to_categori
 train_and_test <- cbind(train_and_test, hours_per_week_categorical=hours_per_week_categorical)
 ```
 
+Existe una clara mayoría de fulltime
 ```{r}
-head(train_and_test)
+percentage_piechart(train_and_test, "hours_per_week_categorical", 5)
 ```	
 # Analizar outliers
 Edades negativas o superiores a 100, variables categóricas no especificadas en la descripción del dataset, etc.
