@@ -181,6 +181,9 @@ Este atributo sirve para... puede tener los valores...
 percentage_piechart(train_and_test, "native_country", 4)
 ```
 
+```{r}
+countries_distribution <- train_and_test %>% group_by(native_country) %>% count()
+```
 La clase mayoritaria (x.x%) es "XXX"
 Hay x missing values (x%)
 Valores no especificados en el dataset/typos: x
@@ -398,6 +401,10 @@ Existe una clara mayoría de fulltime
 ```{r}
 percentage_piechart(train_and_test, "hours_per_week_categorical", 5)
 ```	
+
+# Eliminar missing values
+De acuerdon con el análisis realizado, hay missing values en los atributos workclass, occupation y native_country.
+
 # Analizar outliers
 Edades negativas o superiores a 100, variables categóricas no especificadas en la descripción del dataset, etc.
 
@@ -405,3 +412,18 @@ Edades negativas o superiores a 100, variables categóricas no especificadas en 
 
 # Aplicar undersampling (Quitando missing values)
 Explicar que aplicaremos los algoritmos con y sin undersampling
+
+| Atributo       	|  Missing values (#) 	|  Missing values (%) 	| Valor más común 	|
+|----------------	|---------------------	|---------------------	|-----------------	|
+| Workclass      	| 2799                	| 5.7 %               	| private         	|
+| Occupation     	| 2809                	| 5.8%                	| Prof-specialty  	|
+| Native country 	| 857                 	| 1.8%                	| United-States   	|
+
+```{r}
+# Replace the '?' values in workclass column with 'private'
+train_and_test$workclass[train_and_test$workclass=="?"] <- "private"
+# train_and_test$workclass <- train_and_test$workclass %>% replace("?", "private")
+
+percentage_piechart(train_and_test, "workclass", 5)
+
+```
