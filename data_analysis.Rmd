@@ -230,14 +230,19 @@ age_intervals
 ```
 
 ```{r}
-# Split the age column in intervals of 10 years
-# old version
-age_intervals <- train_and_test %>
-  mutate(age_intervals = floor(age / 10) * 10) %>
-  group_by(age_intervals) %>
-  count() 
-  
+percentage_piechart_continuous_attribute <- function(dataframe, attribute_name, size_value, interval_size, normalization_value) {
+  count_target <- dataframe %>% mutate(chunks = floor(dataframe[[attribute_name]]/interval_size)*normalization_value) %>%
+    group_by(chunks) %>%
+    count(chunks)
+
+print(count_target)
+}
 ```	
+
+```{r}
+
+```
+
 # Analizar outliers
 Edades negativas o superiores a 100, variables categóricas no especificadas en la descripción del dataset, etc.
 
