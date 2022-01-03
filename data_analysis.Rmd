@@ -405,25 +405,149 @@ percentage_piechart(train_and_test, "hours_per_week_categorical", 5)
 # Eliminar missing values
 De acuerdon con el análisis realizado, hay missing values en los atributos workclass, occupation y native_country.
 
-# Analizar outliers
-Edades negativas o superiores a 100, variables categóricas no especificadas en la descripción del dataset, etc.
-
-# Analizar relaciones entre variables (Correlación)
-
-# Aplicar undersampling (Quitando missing values)
-Explicar que aplicaremos los algoritmos con y sin undersampling
 
 | Atributo       	|  Missing values (#) 	|  Missing values (%) 	| Valor más común 	|
 |----------------	|---------------------	|---------------------	|-----------------	|
-| Workclass      	| 2799                	| 5.7 %               	| private         	|
+| Workclass      	| 2799                	| 5.7 %               	| Private         	|
 | Occupation     	| 2809                	| 5.8%                	| Prof-specialty  	|
 | Native country 	| 857                 	| 1.8%                	| United-States   	|
 
 ```{r}
-# Replace the '?' values in workclass column with 'private'
-train_and_test$workclass[train_and_test$workclass=="?"] <- "private"
-# train_and_test$workclass <- train_and_test$workclass %>% replace("?", "private")
+# Replace the '?' values in workclass column with 'Private'
+train_and_test$workclass[train_and_test$workclass=="?"] <- "Private"
+percentage_piechart(train_and_test, "workclass", 3.5)
+```
 
-percentage_piechart(train_and_test, "workclass", 5)
+```{r}
+# Replace the '?' values in Occupation column with 'Prof-specialty'
+train_and_test$occupation[train_and_test$occupation=="?"] <- "Prof-specialty"
+percentage_piechart(train_and_test, "occupation", 3.5)
+```
+
+```{r}
+# Replace the '?' values in native_country column with 'United-States'
+train_and_test$native_country[train_and_test$native_country=="?"] <- "United-States"
+percentage_piechart(train_and_test, "native_country", 3.5)
+```
+
+# Analizar outliers
+Se han detectado entradas con valores extremos en el atributo age (Más de 80 años). Se eliminarán estas entradas.
+
+```{r}
+# Remove all the entries with age > 80
+train_and_test <- subset(train_and_test, age < 80)
+
+percentage_piechart_continuous_attribute(train_and_test, "age", 3, 10, 10)
+```	
+
+```{r}
+dim(train_and_test)
+```
+
+# Analizar relaciones entre variables (Correlación)
+TODO: Matriz de correlación
+TODO: Dejar claro que education_num es redundante
+
+# Transformación de variables
+Ya hemos convertido hours_per_week en una variable categórica
+Como se ha mostrado en el análisis, vamos a convertir capital_gain y capital_loss en variables categóricas
+
+```{r}
+# Determina si una instancia tiene capital_gain
+has_capital_gain_function <- function(dataframe) {
+  gain <- as.numeric(dataframe['capital_gain'])
+  if(gain > 0) {
+    return("capital_gain")
+  } else {
+    return("NO_capital_gain")
+  }
+}
+
+has_capital_loss_function <- function(dataframe) {
+  loss <- as.numeric(dataframe['capital_loss'])
+  if(loss > 0) {
+    return("capital_loss")
+  } else {
+    return("NO_capital_loss")
+  }
+}
 
 ```
+
+```{r}
+# Añadir una columna indicando si una instancia tiene o no capital_gain
+train_and_test$capital_gain <- as.numeric(train_and_test$capital_gain)
+has_capital_gain <- apply(train_and_test, 1, has_capital_gain_function) 
+train_and_test <- cbind(train_and_test, has_capital_gain=has_capital_gain)
+
+train_and_test$capital_loss <- as.numeric(train_and_test$capital_loss)
+has_capital_loss <- apply(train_and_test, 1, has_capital_loss_function)
+train_and_test <- cbind(train_and_test, has_capital_loss=has_capital_loss)
+
+```	
+
+```{r}
+head(train_and_test)
+```	
+
+```{r}
+# Creamos una función que aplique estos cambios a un dataframe
+preprocessing <- function(dataframe) {
+  # Convertir hours_per_week en categórico
+  dataframe$hours_per_week <- as.numeric(dataframe$hours_per_week)
+  hours_per_week_categorical <- apply(dataframe, 1, convert_hours_to_categorical)
+  dataframe <- cbind(dataframe, hours_per_week_categorical=hours_per_week_categorical)
+
+  # Reemplazar missing values en workclass
+  dataframe$workclass[dataframe$workclass=="?"] <- "Private"
+
+  # Reemplazar missing values en occupation
+  dataframe$occupation[dataframe$occupation=="?"] <- "Prof-specialty"
+
+  # Reemplazar missing values en native_country
+  dataframe$native_country[dataframe$native_country=="?"] <- "United-States"
+
+  # Eliminar outliers en age
+  dataframe <- subset(dataframe, age < 80)
+
+  # Convertir capital_gain en categórica
+  dataframe$capital_gain <- as.numeric(dataframe$capital_gain)
+  has_capital_gain <- apply(dataframe, 1, has_capital_gain_function) 
+  dataframe <- cbind(dataframe, has_capital_gain=has_capital_gain)
+
+  # Convertir capital_loss en categórica
+  dataframe$capital_loss <- as.numeric(dataframe$capital_loss)
+  has_capital_loss <- apply(dataframe, 1, has_capital_loss_function)
+  dataframe <- cbind(dataframe, has_capital_loss=has_capital_loss)
+
+  return(dataframe)
+}	
+```
+
+Guardamos el dataset preprocesado como un archivo
+
+```{r}
+percentage_piechart(train_and_test, "has_capital_gain", 3.5)
+```	
+
+```{r}
+percentage_piechart(train_and_test, "has_capital_loss", 3.5)
+
+```	
+
+```{r}
+# write.csv(train_and_test, "dataset/train_and_test_preprocessed.data", row.names=FALSE)	
+```	
+
+```{r}
+train_preprocessed <- preprocessing(train)
+# write.csv(train_preprocessed, "dataset/train_preprocessed.data", row.names=FALSE)
+```
+
+```{r}
+test_preprocessed <- preprocessing(test)
+# write.csv(test_preprocessed, "dataset/test_preprocessed.data", row.names=FALSE)
+```
+
+# Aplicar undersampling (Quitando missing values)
+TODO: Explicar que aplicaremos los algoritmos con y sin undersampling
