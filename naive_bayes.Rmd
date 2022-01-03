@@ -11,6 +11,8 @@ El paquete klarR es...
 library("klaR")
 # install.packages("caret")
 library("caret")
+# install.packages("e1071")
+library(e1071)
 ```
 
 Cargamos los datos de entrenamiento y de pruebas preprocesados (Ver notebook data_analysis.Rmd)
@@ -31,7 +33,7 @@ sex, native_country, hours_per_week_categorical, has_capital_gain, has_capital_l
 TODO: CONVERTIR fnlwgt A CATEGÓRICO
 Convertimos el atributo age a categórico (grupos de 10 años)
 
-Tener en cuenta que: age es numérico (convertir a categórico), education_num es redundante, 
+Tener en cuenta que: age es numérico (convertir a categórico?), education_num es redundante, 
 capital_gain y capital_loss han sido convertidos a categóricos, hours_per_week es categórico
 
 La variable a predecir es target (Posibles valores: <=50K, >50K).
@@ -49,7 +51,35 @@ convert_age_to_categorical <- function(x) {
 ```{r}	
 decade_train <- apply(train, 1, convert_age_to_categorical)
 train <- cbind(train, decade=decade_train)
-
 head(train)
 ```
 
+```{r}
+# Removed fnlwgt and age
+selected_attributes <- c("decade", "workclass", "education", "marital_status", "occupation", "relationship", 
+"race", "sex", "native_country", "hours_per_week_categorical", "has_capital_gain", "has_capital_loss")
+x_train <- train[selected_attributes]
+
+y_train <- train$target
+
+head(x_train)	
+head(y_train)
+```	
+
+```{r}
+x_test <- test[selected_attributes]
+y_test <- test$target
+
+head(x_test)
+head(y_test)
+```	
+
+
+# Entrenamiento del modelo
+```{r}	
+model <- train(x_train, y_train, 'nb', trControl=trainControl(method="cv", number=10))
+```	
+
+```{r}
+model	
+```	
