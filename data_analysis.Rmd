@@ -549,5 +549,7 @@ test_preprocessed <- preprocessing(test)
 # write.csv(test_preprocessed, "dataset/test_preprocessed.data", row.names=FALSE)
 ```
 
+TODO: Explicar que la normalización de los atributos numéricos se llevará a cabo cuando un algoritmo lo requiera (e.g., KNN)
+
 # Aplicar undersampling (Quitando missing values)
 TODO: Explicar que aplicaremos los algoritmos con y sin undersampling
