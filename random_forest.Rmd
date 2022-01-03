@@ -1,0 +1,86 @@
+# Aplicación de Random forest
+Explicación de Random forest
+
+```{r}
+install.packages("randomForest")
+library(randomForest)
+install.packages("caTools")
+library(caTools)
+```
+
+
+Cargamos los datos de entrenamiento y de pruebas preprocesados (Ver notebook data_analysis.Rmd)
+
+
+```{r}
+train <- read.csv("dataset/train_preprocessed.data", sep=",", row.names=NULL, header=TRUE)
+head(train)
+dim(train)
+
+test <- read.csv("dataset/test_preprocessed.data", sep=",", row.names=NULL, header=TRUE)
+head(test)
+dim(test)
+```
+
+Transformamos los datos (TODO: Explicar)
+
+```{r}
+summary(train)
+dim(train)	
+```
+
+```{r}
+transform_data <- function(dataframe) {
+    dataframe <- transform(dataframe, age=as.integer(age), workclass=as.factor(workclass),
+        fnlwgt=as.numeric(fnlwgt), education=as.factor(education), education_num=as.integer(education_num),
+        marital_status=as.factor(marital_status), occupation=as.factor(occupation), relationship=as.factor(relationship),
+        race=as.factor(race), sex=as.factor(sex), capital_gain=as.numeric(capital_gain), capital_loss=as.numeric(capital_loss),
+        hours_per_week=as.integer(hours_per_week), native_country=as.factor(native_country), target=as.factor(target),
+        hours_per_week_categorical=as.factor(hours_per_week_categorical),has_capital_gain=as.factor(has_capital_gain),
+        has_capital_loss=as.factor(has_capital_loss)
+    )
+
+    return(dataframe)
+}
+```
+
+
+
+```{r}
+train <- transform_data(train)
+summary(train)	
+dim(train)
+
+test <- transform_data(test)
+summary(test)
+dim(test)
+```
+
+
+```{r}
+
+selected_attributes <- c("age", "fnlwgt", "workclass", "education", "marital_status", "occupation", "relationship", 
+"race", "sex", "native_country", "hours_per_week_categorical", "has_capital_gain", "has_capital_loss")
+x_train <- train[selected_attributes]
+y_train <- train$target
+
+x_test <- test[selected_attributes]
+y_test <- test$target
+
+model <- randomForest(x_train, y=y_train, ntree=100, importance=TRUE, seed=123, xtest= x_test, ytest = y_test)
+
+```
+
+```{r}
+model
+```
+
+```{r}
+
+
+```
+
+```{r}
+colnames(train)
+colnames(test)
+```	
