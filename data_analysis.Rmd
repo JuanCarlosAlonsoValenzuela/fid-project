@@ -79,6 +79,14 @@ percentage_piechart <- function(dataframe, attribute_name, size_value) {
 percentage_piechart(train_and_test, "target", 6)
 ```
 
+```{r}
+percentage_piechart(train, "target", 6)
+```
+
+```{r}
+percentage_piechart(test, "target", 6)
+```
+
 # Análisis de atributos categóricas
 Analizaremos cada atributo categórico, tanto su distribución como el número/porcentaje de missing values
 También analizaremos si hay alguna correlación entre cada atributo y el target

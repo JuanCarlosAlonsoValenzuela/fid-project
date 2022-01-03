@@ -1,0 +1,55 @@
+# Naive Bayes
+En este notebook se aplica el modelo probabilístico Naive Bayes
+Ventajas e inconvenientes de Naive Bayes
+Se ha consultado la documentación del paquete Caret de NB (https://rpubs.com/maulikpatel/224581), partiendo los conocimientos adquiridos con los notebooks estudiados durante el curso.
+
+## Carga de datos
+Comenzamos cargando las librerías necesarias.
+El paquete klarR es...
+```{r}
+# install.packages("klaR")
+library("klaR")
+# install.packages("caret")
+library("caret")
+```
+
+Cargamos los datos de entrenamiento y de pruebas preprocesados (Ver notebook data_analysis.Rmd)
+```{r}
+train <- read.csv("dataset/train_preprocessed.data", sep=",", row.names=NULL, header=TRUE)
+head(train)
+dim(train)
+
+test <- read.csv("dataset/test_preprocessed.data", sep=",", row.names=NULL, header=TRUE)
+head(test)
+dim(test)
+```
+
+Los atributos que se usarán para el entrenamiento son:
+age, workclass, fnlwgt, education, marital_status, occupation, relationship, race, 
+sex, native_country, hours_per_week_categorical, has_capital_gain, has_capital_loss
+
+TODO: CONVERTIR fnlwgt A CATEGÓRICO
+Convertimos el atributo age a categórico (grupos de 10 años)
+
+Tener en cuenta que: age es numérico (convertir a categórico), education_num es redundante, 
+capital_gain y capital_loss han sido convertidos a categóricos, hours_per_week es categórico
+
+La variable a predecir es target (Posibles valores: <=50K, >50K).
+
+```{r}
+convert_age_to_categorical <- function(x) {
+    age <- as.numeric(x['age'])
+    decade <- floor(age/10)*10
+    # Convert decade to string
+    decade <- as.character(paste(decade, decade+10, sep="_"))
+    return(decade)
+}	
+```	
+
+```{r}	
+decade_train <- apply(train, 1, convert_age_to_categorical)
+train <- cbind(train, decade=decade_train)
+
+head(train)
+```
+
