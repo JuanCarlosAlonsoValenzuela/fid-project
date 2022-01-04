@@ -169,7 +169,39 @@ y_train <- y_train[]==">50K"
 y_test <- y_test[]==">50K"
 ```
 
+# Modelo 1: XGBoost Con tree booster
+Explicar
+Recibe hiperparámetros exclusivos de esta configuración. Los creamos en el siguiente snippet de código:
+TODO: Explicar hiperparámetros
+TODO: Explicar parámetros fijos del modelo (watchlist, early_stopping_rounds, num_boost_rounds)
 ```{r}
-summary(y_test)
+gamma <- c(0.3, 0.6, 1.0)
+max_depth <- c(10, 50, 100, 150)
+scale_pos_weight <- c(0.5, 1.0, 1.5)
 ```
+
+
+```{r}
+model <- xgboost(
+    data=as.matrix(x_train), label=y_train, 
+    max.depth = 100,
+    gamma = 0.3,
+    scale_pos_weight = 1.0, 
+    nrounds = 20,
+    verbose = 2,
+    # watchlist = 
+    nthread = 2, 
+    eval_metric = "logloss",
+    objective = "binary:logistic",
+    booster = "gbtree"
+)
+```
+
+```{r}
+model
+```
+```{r}
+xgb.dump(model, with_stats = TRUE)
+```
+
 
