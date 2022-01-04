@@ -1,0 +1,158 @@
+# Aplicación de xgboost
+Explicar conceptos teóricos
+Explicar que vamos a aplicar x variantes distintas de xgboost
+
+Comenzamos, como siempre, importando las librerías necesarias
+
+```{r}
+# install.packages("xgboost")
+library(xgboost)
+# install.packages("tidyverse")
+library(tidyverse)
+# install.packages("drat")
+library(drat)
+library("ggplot2")
+# install.packages("ggrepel")
+library(ggrepel)
+# install.packages("gridExtra")
+library(gridExtra)
+```
+
+
+Cargamos los datos de entrenamiento y de pruebas preprocesados (Ver notebook data_analysis.Rmd)
+
+```{r}
+train <- read.csv("dataset/train_preprocessed.data", sep=",", row.names=NULL, header=TRUE)
+head(train)
+dim(train)
+
+test <- read.csv("dataset/test_preprocessed.data", sep=",", row.names=NULL, header=TRUE)
+head(test)
+dim(test)
+```
+
+Convertimos el atributo country en booleano (TODO: Explicar que esto se hace con el one-hot encoding en mente)
+```{r}
+convert_country_to_categorical <- function(x) {
+    country <- x['native_country']
+    if (country == "United-States") {
+        return("usa")
+    } else {
+        return("not_usa")
+    }
+}	
+```	
+
+```{r}
+born_in_usa_train <- apply(train, 1, convert_country_to_categorical)
+train <- cbind(train, born_in_usa=born_in_usa_train)
+head(train)	
+```	
+
+```{r}
+born_in_usa_test <- apply(test, 1, convert_country_to_categorical)
+test <- cbind(test, born_in_usa=born_in_usa_test)
+head(test)
+```	
+
+Transform data:
+
+```{r}
+transform_data <- function(dataframe) {
+    dataframe <- transform(dataframe, age=as.integer(age), workclass=as.factor(workclass),
+        fnlwgt=as.numeric(fnlwgt), education=as.factor(education), education_num=as.integer(education_num),
+        marital_status=as.factor(marital_status), occupation=as.factor(occupation), relationship=as.factor(relationship),
+        race=as.factor(race), sex=as.factor(sex), capital_gain=as.numeric(capital_gain), capital_loss=as.numeric(capital_loss),
+        hours_per_week=as.integer(hours_per_week), native_country=as.factor(native_country), target=as.factor(target),
+        hours_per_week_categorical=as.factor(hours_per_week_categorical),has_capital_gain=as.factor(has_capital_gain),
+        has_capital_loss=as.factor(has_capital_loss), born_in_usa=as.factor(born_in_usa)
+    )
+
+    return(dataframe)
+}
+```
+
+```{r}
+train <- transform_data(train)
+summary(train)
+test <- transform_data(test)
+summary(test)
+```
+
+# Preparación de los datos que serán usados por el modelo
+Seleccionamos las columnas que usaremos para entrenar el modelo
+```{r}
+selected_attributes <- c("age", "workclass", "fnlwgt", "education", "marital_status",  "occupation", "relationship", 
+"race", "sex", "hours_per_week_categorical", "has_capital_gain", "has_capital_loss", "born_in_usa")
+
+x_train <- train[selected_attributes]
+y_train <- train$target
+
+x_test <- test[selected_attributes]
+y_test <- test$target
+``` 
+
+xgboost recibe una matriz, no un dataframe, es necesario convertir las variables categóricas en numéricas.
+
+Convert to one-hot encoding the following attributes:
+```{r}
+head(x_train)
+```
+
+```{r}
+convert_to_one_hot <- function(dataframe) {
+    # workclass
+    dataframe <- cbind(dataframe, model.matrix(~workclass-1, dataframe))
+    dataframe$workclass <- NULL
+
+    # education
+    dataframe <- cbind(dataframe, model.matrix(~education-1, dataframe))
+    dataframe$education <- NULL
+
+    # marital_status
+    dataframe <- cbind(dataframe, model.matrix(~marital_status-1, dataframe))
+    dataframe$marital_status <- NULL
+
+    # occupation
+    dataframe <- cbind(dataframe, model.matrix(~occupation-1, dataframe))
+    dataframe$occupation <- NULL
+
+    # relationship
+    dataframe <- cbind(dataframe, model.matrix(~relationship-1, dataframe))
+    dataframe$relationship <- NULL
+    
+    # race
+    dataframe <- cbind(dataframe, model.matrix(~race-1, dataframe))
+    dataframe$race <- NULL
+
+    # sex
+    dataframe <- cbind(dataframe, model.matrix(~sex-1, dataframe))
+    dataframe$sex <- NULL
+
+    # hours_per_week_categorical
+    dataframe <- cbind(dataframe, model.matrix(~hours_per_week_categorical-1, dataframe))
+    dataframe$hours_per_week_categorical <- NULL
+
+    # has_capital_gain
+    dataframe <- cbind(dataframe, model.matrix(~has_capital_gain-1, dataframe))
+    dataframe$has_capital_gain <- NULL
+
+    # has_capital_loss
+    dataframe <- cbind(dataframe, model.matrix(~has_capital_loss-1, dataframe))
+    dataframe$has_capital_loss <- NULL
+
+    # born_in_usa
+    dataframe <- cbind(dataframe, model.matrix(~born_in_usa-1, dataframe))
+    dataframe$born_in_usa <- NULL
+
+    return(dataframe)
+}
+
+```
+
+```{r}
+x_train <- convert_to_one_hot(x_train)
+head(x_train)
+```
+
+TODO: Convertir target en boolean
