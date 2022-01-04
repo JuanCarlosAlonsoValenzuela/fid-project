@@ -153,6 +153,23 @@ convert_to_one_hot <- function(dataframe) {
 ```{r}
 x_train <- convert_to_one_hot(x_train)
 head(x_train)
+
+x_test <- convert_to_one_hot(x_test)
+head(x_test)
 ```
 
 TODO: Convertir target en boolean
+
+```{r}
+summary(y_test)
+```
+
+```{r}
+y_train <- y_train[]==">50K"
+y_test <- y_test[]==">50K"
+```
+
+```{r}
+summary(y_test)
+```
+
