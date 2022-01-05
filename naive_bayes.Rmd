@@ -155,16 +155,25 @@ help(confusionMatrix)
 ```{r}
 y_pred_train <- predict(model_nb, newdata = train)	
 # cm_train <- table(train$target, y_pred_train)
-example <- confusionMatrix(data=y_pred_train, reference=train$target, positive=">50K", mode = "prec_recall")
-example
+cm_train <- confusionMatrix(data=y_pred_train, reference=train$target, positive=">50K", mode = "prec_recall")
+cm_train
+
+train_precision <- precision(data=y_pred_train, reference=train$target, relevant=">50K")
+train_precision
+train_recall <- recall(data=y_pred_train, reference=train$target, relevant=">50K")
+train_recall
+train_f1 <- F_meas(data=y_pred_train, reference=train$target, relevant=">50K")
+train_f1
 ```	
 
 ```{r}
-# Print the property sensitivity of the confusion matrix
-example$sensitivity
+cm_test <- confusionMatrix(data=y_pred_test, reference=test$target, positive=">50K", mode = "prec_recall")
+cm_test
+```	
+```{r}
+
 ```
 
 ```{r}
-help(table)
-
+help(F_meas)
 ```
