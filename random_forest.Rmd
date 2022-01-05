@@ -4,10 +4,11 @@ Explicación de Random forest
 # Carga de datos
 ```{r}
 set.seed(123)
-# install.packages("randomForest")
+install.packages("randomForest")
 library(randomForest)
-# install.packages("caTools")
+install.packages("caTools")
 library(caTools)
+install.packages("caret")
 library("caret")
 # library("klaR")
 ```
@@ -71,51 +72,74 @@ train <- train[selected_attributes]
 
 test <- test[selected_attributes]
 
-model_rf <- randomForest(target ~ ., data=train,
-    ntree=100, 
-    importance=TRUE,
-    mtry = 3.0
-)
+levels(test$native_country) <- levels(train$native_country)
 
+```
+
+
+Definimos una función que ejecute el modelo con una configuración determinada
+```{r}
+train_and_evaluate_random_forest_with_configuration <- function(conf_number, train_set, test_set, 
+                                        ntree_value, mtry_value, importance_value) {
+    # Print configuration used
+    # Configuración #X, ntree=Y, mtry=Z, importance=W
+    print("####################################")
+    print(paste("Configuración #", conf_number, ", ntree=", ntree_value, ", mtry=", mtry_value, ", importance=", importance_value))
+
+    # Train model
+    model_rf <- randomForest(target ~ ., data=train_set,
+        ntree=ntree_value, mtry=mtry_value, importance=importance_value)
+
+    # Predict on the training set
+    y_pred_train <- predict(model_rf, new_data = train_set)
+    train_precision <- precision(data=y_pred_train, reference=train_set$target, relevant=">50K")
+    train_recall <- recall(data=y_pred_train, reference=train_set$target, relevant=">50K")
+    train_f1 <- F_meas(data=y_pred_train, reference=train_set$target, relevant=">50K")
+
+    levels(test_set$native_country) <- levels(train_set$native_country)
+
+    # Predict on the test set
+    y_pred_test <- predict(model_rf, test_set)
+    print(length(y_pred_test))
+    test_precision <- precision(data=y_pred_test, reference=test_set$target, relevant=">50K")
+    test_recall <- recall(data=y_pred_test, reference=test_set$target, relevant=">50K")
+    test_f1 <- F_meas(data=y_pred_test, reference=test_set$target, relevant=">50K")
+
+    # Print metrics in both training and test sets (in a single line)
+    print(paste("Train precision: ", train_precision, ", recall: ", train_recall, ", F1-Score: ", train_f1))
+    print(paste("Test precision: ", test_precision, ", recall: ", test_recall, ", F1-Score: ", test_f1))
+
+    # Return F1-Score and model
+    return(list(test_f1, model_rf))
+
+}
 ```
 
 ```{r}
-# help(randomForest)	
+# Hiperparámetros a configurar
+ntree_values <- c(10, 100, 500, 1000)
+mtry_values <- c(2.0,3.0,4.0,6.0)
+importance_values <- c(FALSE, TRUE)
+
+# Contador de configuraciones 
+i <- 1
+
+# Orden: ntree, mtry, importance
+best_configuration <- list(10, 2.0, FALSE)
+best_f1_score <- 0.0
+best_model <- NULL
+
+# TODO: Definir función de entrenamiento y crear for loops anidados
+
 ```
+
+
+```{r}
+model_rf <- train_and_evaluate_random_forest_with_configuration(1, train, test, 100, 3.0, TRUE)
+
+```
+
 
 ```{r}
 model_rf
 ```
-
-```{r}
-y_pred_train <- predict(model_rf, new_data = train)
-
-train_precision <- precision(data=y_pred_train, reference=train$target, relevant=">50K")
-train_precision
-train_recall <- recall(data=y_pred_train, reference=train$target, relevant=">50K")
-train_recall
-train_f1 <- F_meas(data=y_pred_train, reference=train$target, relevant=">50K")
-train_f1
-```
-
-```{r}
-help(randomForest)
-```
-```{r}
-levels(test$native_country) <- levels(train$native_country)
-y_pred_test <- predict(model_rf, test)
-
-
-test_precision <- precision(data=y_pred_test, reference=test$target, relevant=">50K")
-test_precision
-test_recall <- recall(data=y_pred_test, reference=test$target, relevant=">50K")
-test_recall
-test_f1 <- F_meas(data=y_pred_test, reference=test$target, relevant=">50K")
-test_f1
-
-```
-
-```{r}
-# colnames(train)
-levels(test$native_country) <- levels(train$native_country)
-```	

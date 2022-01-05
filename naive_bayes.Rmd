@@ -110,7 +110,7 @@ summary(test)
 # Entrenamiento del modelo
 
 ```{r}
-help(confusionMatrix)
+# help(confusionMatrix)
 ```
 	
 ```{r}
@@ -149,12 +149,6 @@ train_and_evaluate_naive_bayes_with_configuration <- function(conf_number, train
 
 Definimos los hiperparámetros (explicar que la función Naive Bayes no admite GridSearch, por lo que la hacemos a mano)
 
-```{r}
-# Create a list containing a number and a string
-list_of_values <- list(1, "a", 2, "b", 3, "c")
-# Print the first element of the list
-list_of_values[[1]]
-```
 
 ```{r}
 set.seed(123)
