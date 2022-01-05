@@ -6,15 +6,23 @@ Se ha consultado la documentación del paquete Caret de NB (https://rpubs.com/ma
 ## Carga de datos
 Comenzamos cargando las librerías necesarias.
 El paquete klarR es...
+
 ```{r}
+# install.packages("klaR")
+# library("klaR")
+# install.packages("naivebayes")
+library(naivebayes)
+# install.packages("caret")
+# install.packages("e1071")
+# library(e1071)
+# install.packages("caTools")
+# library(caTools)
 # install.packages("klaR")
 library("klaR")
 # install.packages("caret")
 library("caret")
 # install.packages("e1071")
 library(e1071)
-install.packages("caTools")
-library(caTools)
 ```
 
 Cargamos los datos de entrenamiento y de pruebas preprocesados (Ver notebook data_analysis.Rmd)
@@ -95,41 +103,35 @@ selected_attributes <- c("decade", "workclass", "education", "marital_status", "
 "race", "sex", "native_country", "hours_per_week_categorical", "has_capital_gain", "has_capital_loss", "target")
 train <- train[selected_attributes]
 
-# y_train <- train$target
-
 head(train)	
-# head(y_train)
 ```	
 
 ```{r}
 test <- test[selected_attributes]
-# y_test <- test$target
-
-head(x_test)
+head(test)
 # head(y_test)
 ```	
 
 
 ```{r}
 summary(train)	
+summary(test)
 ```
 
-```{r}
-laplace <- c(1)	
-```
 
 # Entrenamiento del modelo
 ```{r}	
-# model <- train(x_train, y_train, 'nb', trControl=trainControl(method="cv", number=10), laplace=10)
-set.seed(123)
+# set.seed(123)
 model_nb <- naiveBayes(target ~ ., data=train, laplace=1)
+model_nb
 ```	
 
 ```{r}
 
 nb_grid <- expand.grid(
-    laplace = c(0, 0.5, 1, 10, 20)),
-    eps = c(0.01, 0.1, 0.3, 0.5, 1.0)
+    laplace_values = c(0, 0.5, 1, 10, 20),
+    eps_values = c(0.01, 0.1, 0.3, 0.5, 1.0),
+    usepoisson_values = c(FALSE, TRUE)
 )
 
 ```
@@ -143,12 +145,26 @@ y_pred_test <- predict(model_nb, newdata = test)
 ```	
 
 ```{r}
-cm <- table(test$target, y_pred_test)
-cm
+cm_test <- table(test$target, y_pred_test)
+cm_test
 ```
 
 ```{r}
+help(confusionMatrix)
+```
+```{r}
 y_pred_train <- predict(model_nb, newdata = train)	
-cm_train <- table(train$target, y_pred_train)
-cm_train
+# cm_train <- table(train$target, y_pred_train)
+example <- confusionMatrix(data=y_pred_train, reference=train$target, positive=">50K", mode = "prec_recall")
+example
 ```	
+
+```{r}
+# Print the property sensitivity of the confusion matrix
+example$sensitivity
+```
+
+```{r}
+help(table)
+
+```
