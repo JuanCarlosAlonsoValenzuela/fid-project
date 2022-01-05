@@ -1,0 +1,100 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+```{r}
+set.seed(123) # se establece la semilla para que cada vez que se ejecute el notebook desde el principio salga lo mismo
+
+require(caret)
+library(doParallel)
+```
+
+```{r}
+
+train_data <- read.csv("Data/dataset/train_preprocessed.data", sep=",")
+test_data <- read.csv("Data/dataset/test_preprocessed.data", sep=",")
+
+```
+
+```{r}
+y_train <- factor(train_data$target)
+x_train <- train_data[0:13]
+y_test <- factor(test_data$target)
+x_test <- test_data[0:13]
+
+x_train$workclass <- factor(x_train$workclass)
+x_train$education <- factor(x_train$education)
+x_train$marital_status <- factor(x_train$marital_status)
+x_train$occupation <- factor(x_train$occupation)
+x_train$relationship <- factor(x_train$relationship)
+x_train$race <- factor(x_train$race)
+x_train$sex <- factor(x_train$sex)
+
+x_test$workclass <- factor(x_test$workclass)
+x_test$education <- factor(x_test$education)
+x_test$marital_status <- factor(x_test$marital_status)
+x_test$occupation <- factor(x_test$occupation)
+x_test$relationship <- factor(x_test$relationship)
+x_test$race <- factor(x_test$race)
+x_test$sex <- factor(x_test$sex)
+
+# min-max normalization
+normalize <- function(x_train, x_test) {
+  return ((x_train - min(x_train, x_test)) / (max(x_train, x_test) - min(x_train, x_test)))
+}
+
+x_train$age <- normalize(x_train$age, x_test$age)
+x_train$fnlwgt <- normalize(x_train$fnlwgt, x_test$fnlwgt)
+x_train$capital_gain <- normalize(x_train$capital_gain, x_test$capital_gain)
+x_train$capital_loss <- normalize(x_train$capital_loss, x_test$capital_loss)
+x_train$hours_per_week <- normalize(x_train$hours_per_week, x_test$hours_per_week)
+
+x_test$age <- normalize(x_test$age, x_train$age)
+x_test$fnlwgt <- normalize(x_test$fnlwgt, x_train$fnlwgt)
+x_test$capital_gain <- normalize(x_test$capital_gain, x_train$capital_gain)
+x_test$capital_loss <- normalize(x_test$capital_loss, x_train$capital_loss)
+x_test$hours_per_week <- normalize(x_test$hours_per_week, x_train$hours_per_week)
+
+# one-hot
+dmy <- dummyVars(" ~ .", data=x_train)
+x_train <- data.frame(predict(dmy, newdata = x_train))
+
+dmy <- dummyVars(" ~ .", data=x_test)
+x_test <- data.frame(predict(dmy, newdata = x_test))
+
+x_test
+```
+
+```{r}
+# todas las combinaciones posibles
+mlp_grid = expand.grid(layer1 = c(3, 5, 10),
+                       layer2 = c(3, 5, 10),
+                       layer3 = c(3, 5, 10))
+
+# empleo 4 cores de mi procesador
+cl <- makePSOCKcluster(4)
+registerDoParallel(cl)
+
+# se crean todos los modelos con los parámetros de mlp_grid (tuning) y se evalúa su rendimiento
+model <- train(x, 
+               y, 
+               metric = "F",
+               method = "mlpML", 
+               tuneGrid = mlp_grid, 
+               maxit = 100, 
+               trControl = trainControl(method = "cv", summaryFunction = prSummary, verboseIter = TRUE, returnData = FALSE, number = 10, sampling = "down"), # number es el núm de veces que vuelve a entrenar
+               ) #nzv elimina las variables que no proporcionan conocimiento (varianza)
+
+# dejo de emplear los 4 cores cuando he acabado de entrenar
+stopCluster(cl)
+
+#imprimo el modelo
+model
+```
+
+```{r}
+confusionMatrix(predict(model, newdata = x_test), y_test, mode = "prec_recall")
+```
