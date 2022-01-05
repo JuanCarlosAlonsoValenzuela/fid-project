@@ -194,72 +194,70 @@ dtrain <- xgb.DMatrix(x_train, label=y_train)
 dtest <- xgb.DMatrix(x_test, label=y_test)	
 ```	
 
-```{r}
-help(xgb.train)
-```
 
 
 ```{r}
 
 search_grid <- expand.grid(
     updater <- c("shotgun", "coord_descent"),
-    feature_selector <- c("cyclic", "greedy")
+    feature_selector <- c("cyclic", "shuffle")
 )
 
 ```
 
 ```{r}
-watchlist <- list(train=dtrain, test=dtest)
+# watchlist <- list(train=dtrain, test=dtest)
 
 
-system.time(
-    logloss_error_hyperparameters <- apply(search_grid, 1, function(parameter_list) {
+# system.time(
+#     logloss_error_hyperparameters <- apply(search_grid, 1, function(parameter_list) {
 
-        # Obtener los parámetros de la configuración
-        current_updater <- parameter_list[["updater"]]
-        current_feature_selector <- parameter_list[["feature_selector"]]
+#         # Obtener los parámetros de la configuración
+#         current_updater <- parameter_list[[1]]
+#         print(current_updater)
+#         current_feature_selector <- parameter_list[[2]]
+#         print(feature_selector)
+#         # Crear el modelo
+#         model_gbtree <- xgb.cv(
+#             data=dtrain, 
 
-        # Crear el modelo
-        model_gbtree <- xgb.cv(
-            data=dtrain, 
+#             updater = current_updater,
+#             feature_selector = current_feature_selector,
 
-            updater = current_updater,
-            feature_selector = current_feature_selector,
+#             nrounds = 20,
+#             nfold = 5,
+#             verbose  = 2,
+#             print_every_n = 1,
+#             nthread = 5, 
+#             eval_metric = "logloss",
+#             watchlist = watchlist,
+#             objective = "binary:logistic",
+#             booster = "gblinear"
+#         )
 
-            nrounds = 20,
-            nfold = 5,
-            verbose  = 2,
-            print_every_n = 1,
-            nthread = 5, 
-            eval_metric = "logloss",
-            watchlist = watchlist,
-            objective = "binary:logistic",
-            booster = "gblinear"
-        )
+#         validation_scores <- as.data.frame(model_gbtree$evaluation_log)
+#         print(colnames(validation_scores))
 
-        validation_scores <- as.data.frame(model_gbtree$evaluation_log)
-        print(colnames(validation_scores))
+#         logloss <- tail(validation_scores$test_logloss_mean, 1)
+#         t_logloss <- tail(validation_scores$train_logloss_mean, 1)
 
-        logloss <- tail(validation_scores$test_logloss_mean, 1)
-        t_logloss <- tail(validation_scores$train_logloss_mean, 1)
+#         output <- return(c(logloss, t_logloss, current_updater, current_feature_selector))
 
-        output <- return(c(logloss, t_logloss, current_updater, current_feature_selector))
-
-    })
-)
+#     })
+# )
 
 
 ```
 
 ```{r}
-output <- as.data.frame(t(logloss_error_hyperparameters))
-varnames <- c("Test_logloss", "Train_logloss", "updater", "feature_selector")
-names(output) <- varnames
-head(output)
+# output <- as.data.frame(t(logloss_error_hyperparameters))
+# varnames <- c("Test_logloss", "Train_logloss", "updater", "feature_selector")
+# names(output) <- varnames
+# head(output)
 ```
 
 ```{r}
-write.csv(output, "output_xgboost_linear_booster.csv")	
+# write.csv(output, "output_xgboost_linear_booster.csv")	
 ```
 
 
