@@ -154,7 +154,7 @@ help(confusionMatrix)
 ```
 ```{r}
 y_pred_train <- predict(model_nb, newdata = train)	
-# cm_train <- table(train$target, y_pred_train)
+
 cm_train <- confusionMatrix(data=y_pred_train, reference=train$target, positive=">50K", mode = "prec_recall")
 cm_train
 
@@ -169,11 +169,48 @@ train_f1
 ```{r}
 cm_test <- confusionMatrix(data=y_pred_test, reference=test$target, positive=">50K", mode = "prec_recall")
 cm_test
+test_precision <- precision(data=y_pred_test, reference=test$target, relevant=">50K")
+test_precision
+test_recall <- recall(data=y_pred_test, reference=test$target, relevant=">50K")
+test_recall
+test_f1 <- F_meas(data=y_pred_test, reference=test$target, relevant=">50K")
+test_f1
 ```	
 ```{r}
+train_and_evaluate_naive_bayes_with_configuration <- function(conf_number, train_set, test_set, 
+                                laplace_value, eps_value, usepoisson_value) {
+    # Print configuration used
+    # Configuración #X, laplace=Y, eps=Z, usepoisson=W
+    print("####################################")
+    print(paste("Configuración #", conf_number, ", laplace=", laplace_value, ", eps=", eps_value, ", usepoisson=", usepoisson_value))
 
+    # Train model
+    model_nb <- naiveBayes(target ~ ., data=train_set, laplace=laplace_value, eps=eps_value, usepoisson=usepoisson_value)
+
+    # Predict on train set
+    y_pred_train <- predict(model_nb, newdata = train_set)
+
+    train_precision <- precision(data=y_pred_train, reference=train_set$target, relevant=">50K")
+    train_recall <- recall(data=y_pred_train, reference=train_set$target, relevant=">50K")
+    train_f1 <- F_meas(data=y_pred_train, reference=train_set$target, relevant=">50K")
+
+    # Predict on test set
+    y_pred_test <- predict(model_nb, newdata = test_set)
+
+    test_precision <- precision(data=y_pred_test, reference=test_set$target, relevant=">50K")
+    test_recall <- recall(data=y_pred_test, reference=test_set$target, relevant=">50K")
+    test_f1 <- F_meas(data=y_pred_test, reference=test_set$target, relevant=">50K")
+
+    # Print metrics in both training and test set (in a single line)
+    print(paste("Train Precision: ", train_precision, " Recall: ", train_recall, " F1-Score ", train_f1))
+    print(paste("Test Precision: ", test_precision, " Recall: ", test_recall, " F1-Score ", test_f1))
+
+    # Return F1-Score
+    return(c(test_f1, model_nb))
+}
 ```
 
 ```{r}
-help(F_meas)
+
+train_and_evaluate_naive_bayes_with_configuration(1, train, test, 1.0, 1.0, FALSE)
 ```
