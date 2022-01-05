@@ -2,10 +2,13 @@
 Explicación de Random forest
 
 ```{r}
-install.packages("randomForest")
+set.seed(123)
+# install.packages("randomForest")
 library(randomForest)
-install.packages("caTools")
+# install.packages("caTools")
 library(caTools)
+library("caret")
+# library("klaR")
 ```
 
 
@@ -60,27 +63,63 @@ dim(test)
 ```{r}
 
 selected_attributes <- c("age", "fnlwgt", "workclass", "education", "marital_status", "occupation", "relationship", 
-"race", "sex", "native_country", "hours_per_week_categorical", "has_capital_gain", "has_capital_loss")
-x_train <- train[selected_attributes]
-y_train <- train$target
+"race", "sex", "native_country", "hours_per_week_categorical", "has_capital_gain", "has_capital_loss", "target")
 
-x_test <- test[selected_attributes]
-y_test <- test$target
+train <- train[selected_attributes]
+# y_train <- train$target
 
-model <- randomForest(x_train, y=y_train, ntree=100, importance=TRUE, seed=123, xtest= x_test, ytest = y_test)
+test <- test[selected_attributes]
+# y_test <- test$target
+
+model_rf <- randomForest(target ~ ., data=train,
+    x_test = test[-14],
+    y_test = test[14]
+# ,
+    # ntree=100, 
+    # importance=TRUE,
+    # mtry = 3.7
+)
 
 ```
 
 ```{r}
-model
+# help(randomForest)	
 ```
 
 ```{r}
+model_rf
+```
 
+```{r}
+y_pred_train <- predict(model_rf, new_data = train)
+
+train_precision <- precision(data=y_pred_train, reference=train$target, relevant=">50K")
+train_precision
+train_recall <- recall(data=y_pred_train, reference=train$target, relevant=">50K")
+train_recall
+train_f1 <- F_meas(data=y_pred_train, reference=train$target, relevant=">50K")
+train_f1
+```
+
+```{r}
+# help(predict)
+summary(test)
+```
+```{r}
+levels(test$native_country) <- levels(train$native_country)
+y_pred_test <- predict(model_rf, test)
+
+
+test_precision <- precision(data=y_pred_test, reference=test$target, relevant=">50K")
+test_precision
+test_recall <- recall(data=y_pred_test, reference=test$target, relevant=">50K")
+test_recall
+test_f1 <- F_meas(data=y_pred_test, reference=test$target, relevant=">50K")
+test_f1
 
 ```
 
 ```{r}
-colnames(train)
-colnames(test)
+# colnames(train)
+levels(test$native_country) <- levels(train$native_country)
 ```	
