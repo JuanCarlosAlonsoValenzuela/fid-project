@@ -5,6 +5,11 @@ Explicar que vamos a aplicar x variantes distintas de xgboost
 Comenzamos, como siempre, importando las librerías necesarias
 
 ```{r}
+set.seed(123)
+
+install.packages("drat", repos="https://cran.rstudio.com")
+drat:::addRepo("dmlc")
+install.packages("xgboost", repos="http://dmlc.ml/drat/", type = "source")
 # install.packages("xgboost")
 library(xgboost)
 # install.packages("tidyverse")
@@ -165,8 +170,11 @@ summary(y_test)
 ```
 
 ```{r}
-y_train <- y_train[]==">50K"
-y_test <- y_test[]==">50K"
+head(y_test)
+y_train <- as.integer(y_train[]==">50K")
+y_test <- as.integer(y_test[]==">50K")
+
+head(y_test)
 ```
 
 # Modelo 1: XGBoost Con tree booster
@@ -178,27 +186,64 @@ TODO: Explicar parámetros fijos del modelo (watchlist, early_stopping_rounds, n
 gamma <- c(0.3, 0.6, 1.0)
 max_depth <- c(10, 50, 100, 150)
 scale_pos_weight <- c(0.5, 1.0, 1.5)
+eta <- c()
+subsample <- c()
 ```
+
+```{r}
+x_train <- as.matrix(x_train)
+x_test  <- as.matrix(x_test)
+
+class(x_train)[1]
+class(y_train)[1]
+
+dtrain <- xgb.DMatrix(x_train, label=y_train)
+dtest <- xgb.DMatrix(x_test, label=y_test)	
+```	
 
 
 ```{r}
-model <- xgboost(
-    data=as.matrix(x_train), label=y_train, 
+watchlist <- list(train=dtrain, test=dtest)
+model_gbtree <- xgb.train(
+    data=dtrain, 
     max.depth = 100,
-    gamma = 0.3,
+    eta = 0.1,  #
+    subsample = 0.5, #
+    gamma = 0.6,
     scale_pos_weight = 1.0, 
     nrounds = 20,
-    verbose = 2,
-    # watchlist = 
+    verbose  = 2,
+    print_every_n = 1,
     nthread = 2, 
     eval_metric = "logloss",
+    watchlist = watchlist,
     objective = "binary:logistic",
     booster = "gbtree"
 )
+model_gbtree
 ```
 
+# XGBoost con gblinear booster
+
+Entrenamos el otro modelo ()
 ```{r}
-model
+model_gblinear <- xgb.train(
+    data=dtrain, 
+    updater="coord_descent",
+    feature_selector="greedy",
+    nrounds = 20,
+    verbose  = 2,
+    print_every_n = 1,
+    nthread = 2, 
+    eval_metric = "logloss",
+    watchlist = watchlist,
+    objective = "binary:logistic",
+    booster = "gblinear"
+)
+```	
+
+```{r}
+help(xgb.train)
 ```
 ```{r}
 xgb.dump(model, with_stats = TRUE)

@@ -13,6 +13,8 @@ library("klaR")
 library("caret")
 # install.packages("e1071")
 library(e1071)
+install.packages("caTools")
+library(caTools)
 ```
 
 Cargamos los datos de entrenamiento y de pruebas preprocesados (Ver notebook data_analysis.Rmd)
@@ -24,6 +26,10 @@ dim(train)
 test <- read.csv("dataset/test_preprocessed.data", sep=",", row.names=NULL, header=TRUE)
 head(test)
 dim(test)
+```
+
+```{r}
+summary(train)
 ```
 
 Los atributos que se usarán para el entrenamiento son:
@@ -51,35 +57,98 @@ convert_age_to_categorical <- function(x) {
 ```{r}	
 decade_train <- apply(train, 1, convert_age_to_categorical)
 train <- cbind(train, decade=decade_train)
+
+decade_test <- apply(test, 1, convert_age_to_categorical)
+test <- cbind(test, decade=decade_test)
 head(train)
+head(test)
+```
+
+```{r}
+transform_data <- function(dataframe) {
+    dataframe <- transform(dataframe, age=as.integer(age), workclass=as.factor(workclass),
+        fnlwgt=as.numeric(fnlwgt), education=as.factor(education), education_num=as.integer(education_num),
+        marital_status=as.factor(marital_status), occupation=as.factor(occupation), relationship=as.factor(relationship),
+        race=as.factor(race), sex=as.factor(sex), capital_gain=as.numeric(capital_gain), capital_loss=as.numeric(capital_loss),
+        hours_per_week=as.integer(hours_per_week), native_country=as.factor(native_country), target=as.factor(target),
+        hours_per_week_categorical=as.factor(hours_per_week_categorical),has_capital_gain=as.factor(has_capital_gain),
+        has_capital_loss=as.factor(has_capital_loss), decade=as.factor(decade)
+    )
+
+    return(dataframe)
+}
+```
+
+```{r}
+train <- transform_data(train)
+summary(train)	
+dim(train)
+
+test <- transform_data(test)
+summary(test)
+dim(test)
 ```
 
 ```{r}
 # Removed fnlwgt and age
 selected_attributes <- c("decade", "workclass", "education", "marital_status", "occupation", "relationship", 
-"race", "sex", "native_country", "hours_per_week_categorical", "has_capital_gain", "has_capital_loss")
-x_train <- train[selected_attributes]
+"race", "sex", "native_country", "hours_per_week_categorical", "has_capital_gain", "has_capital_loss", "target")
+train <- train[selected_attributes]
 
-y_train <- train$target
+# y_train <- train$target
 
-head(x_train)	
-head(y_train)
+head(train)	
+# head(y_train)
 ```	
 
 ```{r}
-x_test <- test[selected_attributes]
-y_test <- test$target
+test <- test[selected_attributes]
+# y_test <- test$target
 
 head(x_test)
-head(y_test)
+# head(y_test)
 ```	
 
+
+```{r}
+summary(train)	
+```
+
+```{r}
+laplace <- c(1)	
+```
 
 # Entrenamiento del modelo
 ```{r}	
-model <- train(x_train, y_train, 'nb', trControl=trainControl(method="cv", number=10))
+# model <- train(x_train, y_train, 'nb', trControl=trainControl(method="cv", number=10), laplace=10)
+set.seed(123)
+model_nb <- naiveBayes(target ~ ., data=train, laplace=1)
 ```	
 
 ```{r}
-model	
+
+nb_grid <- expand.grid(
+    laplace = c(0, 0.5, 1, 10, 20)),
+    eps = c(0.01, 0.1, 0.3, 0.5, 1.0)
+)
+
+```
+
+```{r}
+model_nb	
+```	
+
+```{r}
+y_pred_test <- predict(model_nb, newdata = test)	
+```	
+
+```{r}
+cm <- table(test$target, y_pred_test)
+cm
+```
+
+```{r}
+y_pred_train <- predict(model_nb, newdata = train)	
+cm_train <- table(train$target, y_pred_train)
+cm_train
 ```	
