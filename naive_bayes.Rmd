@@ -199,7 +199,6 @@ print("/////////////////////////////////////////")
 print("Mejor configuración:")
 print(paste("Laplace: ", best_configuration[1], ", eps: ", best_configuration[2], ", usepoisson: ", best_configuration[3]))
 print("Métricas: ")
-print(paste("Precision: ", )
 
 y_pred_train <- predict(best_model, newdata = train)
 cm_train <- confusionMatrix(data=y_pred_train, reference=train$target, positive=">50K", mode = "prec_recall")

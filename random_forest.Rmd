@@ -129,17 +129,52 @@ best_configuration <- list(10, 2.0, FALSE)
 best_f1_score <- 0.0
 best_model <- NULL
 
-# TODO: Definir función de entrenamiento y crear for loops anidados
+for(ntree_value in ntree_values) {
+    for(mtry_value in mtry_values) {
+        for(importance_value in importance_values) {
+            training_result <- train_and_evaluate_random_forest_with_configuration(i, train, test, ntree_value, mtry_value, importance_value)
+            i <- i + 1
+
+            # Comparamos con el mejor modelo actual
+            if(training_result[[1]] > best_f1_score) {
+                best_f1_score <- training_result[[1]]
+                best_configuration <- list(ntree_value, mtry_value, importance_value)
+                best_model <- training_result[[2]]
+            }
+        }
+    }
+}
+
 
 ```
 
 
 ```{r}
-model_rf <- train_and_evaluate_random_forest_with_configuration(1, train, test, 100, 3.0, TRUE)
+
+print("Mejor configuración:")
+print(paste("ntree=", best_configuration[[1]], ", mtry=", best_configuration[[2]], ", importance=", best_configuration[[3]]))
+print("Métricas: ")
+
+y_pred_train <- predict(best_model, train)
+cm_train <- confusionMatrix(y_pred_train, train$target, positive=">50K", mode= "prec_recall")
+train_precision <- precision(data=y_pred_train, reference=train$target, relevant=">50K")
+train_recall <- recall(data=y_pred_train, reference=train$target, relevant=">50K")
+train_f1 <- F_meas(data=y_pred_train, reference=train$target, relevant=">50K")
+
+y_pred_test <- predict(best_model, test)
+cm_test <- confusionMatrix(y_pred_test, test$target, positive=">50K", mode= "prec_recall")
+test_precision <- precision(data=y_pred_test, reference=test$target, relevant=">50K")
+test_recall <- recall(data=y_pred_test, reference=test$target, relevant=">50K")
+test_f1 <- F_meas(data=y_pred_test, reference=test$target, relevant=">50K")
+
+print(paste("Precision train: ", train_precision, "Precision test: ", test_precision))
+print(paste("Recall train: ", train_recall, "Recall test: ", test_recall))
+print(paste("F1-Score train: ", train_f1, " F1-Score test: ", test_f1))
 
 ```
 
-
+Imprimir y explicar matrices de confusión
 ```{r}
-model_rf
+cm_train
+cm_test	
 ```
