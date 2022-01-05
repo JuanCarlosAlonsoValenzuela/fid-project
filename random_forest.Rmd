@@ -1,6 +1,7 @@
 # Aplicación de Random forest
 Explicación de Random forest
 
+# Carga de datos
 ```{r}
 set.seed(123)
 # install.packages("randomForest")
@@ -32,6 +33,7 @@ summary(train)
 dim(train)	
 ```
 
+Aplicamos las transformaciones 
 ```{r}
 transform_data <- function(dataframe) {
     dataframe <- transform(dataframe, age=as.integer(age), workclass=as.factor(workclass),
@@ -59,25 +61,20 @@ summary(test)
 dim(test)
 ```
 
-
+Seleccionamos los atributos específicos que serán usados para entrenar el modelo
 ```{r}
 
 selected_attributes <- c("age", "fnlwgt", "workclass", "education", "marital_status", "occupation", "relationship", 
 "race", "sex", "native_country", "hours_per_week_categorical", "has_capital_gain", "has_capital_loss", "target")
 
 train <- train[selected_attributes]
-# y_train <- train$target
 
 test <- test[selected_attributes]
-# y_test <- test$target
 
 model_rf <- randomForest(target ~ ., data=train,
-    x_test = test[-14],
-    y_test = test[14]
-# ,
-    # ntree=100, 
-    # importance=TRUE,
-    # mtry = 3.7
+    ntree=100, 
+    importance=TRUE,
+    mtry = 3.0
 )
 
 ```
@@ -102,8 +99,7 @@ train_f1
 ```
 
 ```{r}
-# help(predict)
-summary(test)
+help(randomForest)
 ```
 ```{r}
 levels(test$native_country) <- levels(train$native_country)
