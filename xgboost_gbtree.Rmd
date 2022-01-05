@@ -207,88 +207,69 @@ search_grid <- expand.grid(
 
 ```
 
+Estas líneas han sido comentadas porque requieren mucho tiempo (ver csv)
+
 ```{r}
-watchlist <- list(train=dtrain, test=dtest)
+# watchlist <- list(train=dtrain, test=dtest)
 
 
-system.time(
-    logloss_error_hyperparameters <- apply(search_grid, 1, function(parameter_list) {
+# system.time(
+#     logloss_error_hyperparameters <- apply(search_grid, 1, function(parameter_list) {
 
-        # Obtener los parámetros de la configuración
-        current_gamma <- parameter_list[["gamma"]]
-        current_max_depth <- parameter_list[["max_depth"]]
-        current_scale_pos_weight <- parameter_list[["scale_pos_weight"]]
-        current_subsample <- parameter_list[["subsample"]]
+#         # Obtener los parámetros de la configuración
+#         current_gamma <- parameter_list[["gamma"]]
+#         current_max_depth <- parameter_list[["max_depth"]]
+#         current_scale_pos_weight <- parameter_list[["scale_pos_weight"]]
+#         current_subsample <- parameter_list[["subsample"]]
 
-        # Crear el modelo
-        model_gbtree <- xgb.cv(
-            data=dtrain, 
-            gamma = current_gamma,
-            max.depth = current_max_depth,
-            scale_pos_weight = current_scale_pos_weight, 
-            subsample = current_subsample, 
+#         # Crear el modelo
+#         model_gbtree <- xgb.cv(
+#             data=dtrain, 
+#             gamma = current_gamma,
+#             max.depth = current_max_depth,
+#             scale_pos_weight = current_scale_pos_weight, 
+#             subsample = current_subsample, 
             
-            nrounds = 20,
-            nfold = 5,
-            verbose  = 2,
-            print_every_n = 1,
-            nthread = 2, 
-            eval_metric = "logloss",
-            watchlist = watchlist,
-            objective = "binary:logistic",
-            booster = "gbtree"
-        )
+#             nrounds = 20,
+#             nfold = 5,
+#             verbose  = 2,
+#             print_every_n = 1,
+#             nthread = 2, 
+#             eval_metric = "logloss",
+#             watchlist = watchlist,
+#             objective = "binary:logistic",
+#             booster = "gbtree"
+#         )
 
-        validation_scores <- as.data.frame(model_gbtree$evaluation_log)
-        print(colnames(validation_scores))
+#         validation_scores <- as.data.frame(model_gbtree$evaluation_log)
+#         print(colnames(validation_scores))
 
-        logloss <- tail(validation_scores$test_logloss_mean, 1)
-        t_logloss <- tail(validation_scores$train_logloss_mean, 1)
+#         logloss <- tail(validation_scores$test_logloss_mean, 1)
+#         t_logloss <- tail(validation_scores$train_logloss_mean, 1)
 
-        output <- return(c(logloss, t_logloss, current_gamma, current_max_depth, current_scale_pos_weight, current_subsample))
+#         output <- return(c(logloss, t_logloss, current_gamma, current_max_depth, current_scale_pos_weight, current_subsample))
 
-    })
-)
+#     })
+# )
 
 
 ```
 
-```{r}
-output <- as.data.frame(t(logloss_error_hyperparameters))
-varnames <- c("Test_logloss", "Train_logloss", "gamma", "max_depth", "scale_pos_weight", "subsample")
-names(output) <- varnames
-head(output)
-```
+Estas líneas han sido comentadas porque requieren mucho tiempo (ver csv)
 
 ```{r}
-write.csv(output, "output_xgboost_tree_booster.csv")	
+# output <- as.data.frame(t(logloss_error_hyperparameters))
+# varnames <- c("Test_logloss", "Train_logloss", "gamma", "max_depth", "scale_pos_weight", "subsample")
+# names(output) <- varnames
+# head(output)
+```
+
+Estas líneas han sido comentadas porque requieren mucho tiempo (ver csv)
+```{r}
+# write.csv(output, "output_xgboost_tree_booster.csv")	
 ```
 
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-# XGBoost con gblinear booster
 
-Entrenamos el otro modelo ()
-```{r}
-# model_gblinear <- xgb.train(
-#     data=dtrain, 
-#     updater="coord_descent",
-#     feature_selector="greedy",
-#     nrounds = 20,
-#     verbose  = 2,
-#     print_every_n = 1,
-#     nthread = 5, 
-#     eval_metric = "logloss",
-#     watchlist = watchlist,
-#     objective = "binary:logistic",
-#     booster = "gblinear"
-# )
-```	
-
-# ```{r}
-# help(xgb.train)
-# ```
-```{r}
-
-```
 
 
