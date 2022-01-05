@@ -182,13 +182,6 @@ Explicar
 Recibe hiperparámetros exclusivos de esta configuración. Los creamos en el siguiente snippet de código:
 TODO: Explicar hiperparámetros
 TODO: Explicar parámetros fijos del modelo (watchlist, early_stopping_rounds, num_boost_rounds)
-```{r}
-gamma <- c(0.3, 0.6, 1.0)
-max_depth <- c(10, 50, 100, 150)
-scale_pos_weight <- c(0.5, 1.0, 1.5)
-eta <- c()
-subsample <- c()
-```
 
 ```{r}
 x_train <- as.matrix(x_train)
@@ -202,51 +195,100 @@ dtest <- xgb.DMatrix(x_test, label=y_test)
 ```	
 
 
+
 ```{r}
-watchlist <- list(train=dtrain, test=dtest)
-model_gbtree <- xgb.train(
-    data=dtrain, 
-    max.depth = 100,
-    eta = 0.1,  #
-    subsample = 0.5, #
-    gamma = 0.6,
-    scale_pos_weight = 1.0, 
-    nrounds = 20,
-    verbose  = 2,
-    print_every_n = 1,
-    nthread = 2, 
-    eval_metric = "logloss",
-    watchlist = watchlist,
-    objective = "binary:logistic",
-    booster = "gbtree"
+
+search_grid <- expand.grid(
+    gamma = c(0.3, 0.6),
+    max_depth = c(10, 100, 150),
+    scale_pos_weight = c(0.5, 1.0, 1.5),
+    subsample = c(0.5,0.6)
 )
-model_gbtree
+
 ```
 
+```{r}
+watchlist <- list(train=dtrain, test=dtest)
+
+
+system.time(
+    logloss_error_hyperparameters <- apply(search_grid, 1, function(parameter_list) {
+
+        # Obtener los parámetros de la configuración
+        current_gamma <- parameter_list[["gamma"]]
+        current_max_depth <- parameter_list[["max_depth"]]
+        current_scale_pos_weight <- parameter_list[["scale_pos_weight"]]
+        current_subsample <- parameter_list[["subsample"]]
+
+        # Crear el modelo
+        model_gbtree <- xgb.cv(
+            data=dtrain, 
+            gamma = current_gamma,
+            max.depth = current_max_depth,
+            scale_pos_weight = current_scale_pos_weight, 
+            subsample = current_subsample, 
+            
+            nrounds = 20,
+            nfold = 5,
+            verbose  = 2,
+            print_every_n = 1,
+            nthread = 2, 
+            eval_metric = "logloss",
+            watchlist = watchlist,
+            objective = "binary:logistic",
+            booster = "gbtree"
+        )
+
+        validation_scores <- as.data.frame(model_gbtree$evaluation_log)
+        print(colnames(validation_scores))
+
+        logloss <- tail(validation_scores$test_logloss_mean, 1)
+        t_logloss <- tail(validation_scores$train_logloss_mean, 1)
+
+        output <- return(c(logloss, t_logloss, current_gamma, current_max_depth, current_scale_pos_weight, current_subsample))
+
+    })
+)
+
+
+```
+
+```{r}
+output <- as.data.frame(t(logloss_error_hyperparameters))
+varnames <- c("Test_logloss", "Train_logloss", "gamma", "max_depth", "scale_pos_weight", "subsample")
+names(output) <- varnames
+head(output)
+```
+
+```{r}
+write.csv(output, "output_xgboost_tree_booster.csv")	
+```
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # XGBoost con gblinear booster
 
 Entrenamos el otro modelo ()
 ```{r}
-model_gblinear <- xgb.train(
-    data=dtrain, 
-    updater="coord_descent",
-    feature_selector="greedy",
-    nrounds = 20,
-    verbose  = 2,
-    print_every_n = 1,
-    nthread = 2, 
-    eval_metric = "logloss",
-    watchlist = watchlist,
-    objective = "binary:logistic",
-    booster = "gblinear"
-)
+# model_gblinear <- xgb.train(
+#     data=dtrain, 
+#     updater="coord_descent",
+#     feature_selector="greedy",
+#     nrounds = 20,
+#     verbose  = 2,
+#     print_every_n = 1,
+#     nthread = 5, 
+#     eval_metric = "logloss",
+#     watchlist = watchlist,
+#     objective = "binary:logistic",
+#     booster = "gblinear"
+# )
 ```	
 
+# ```{r}
+# help(xgb.train)
+# ```
 ```{r}
-help(xgb.train)
-```
-```{r}
-xgb.dump(model, with_stats = TRUE)
+
 ```
 
 
