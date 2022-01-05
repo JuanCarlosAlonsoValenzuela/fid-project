@@ -128,11 +128,7 @@ model_nb
 
 ```{r}
 
-nb_grid <- expand.grid(
-    laplace_values = c(0, 0.5, 1, 10, 20),
-    eps_values = c(0.01, 0.1, 0.3, 0.5, 1.0),
-    usepoisson_values = c(FALSE, TRUE)
-)
+
 
 ```
 
@@ -206,11 +202,84 @@ train_and_evaluate_naive_bayes_with_configuration <- function(conf_number, train
     print(paste("Test Precision: ", test_precision, " Recall: ", test_recall, " F1-Score ", test_f1))
 
     # Return F1-Score
-    return(c(test_f1, model_nb))
+    return(list(test_f1, model_nb))
 }
 ```
 
-```{r}
+Definimos los hiperparámetros (explicar que la función Naive Bayes no admite GridSearch, por lo que la hacemos a mano)
 
-train_and_evaluate_naive_bayes_with_configuration(1, train, test, 1.0, 1.0, FALSE)
+```{r}
+# Create a list containing a number and a string
+list_of_values <- list(1, "a", 2, "b", 3, "c")
+# Print the first element of the list
+list_of_values[[1]]
+```
+
+```{r}
+set.seed(123)
+
+# Se entrenarán un total de 32 modelos, seleccionando el mejor de todos
+laplace_values <- c(0, 0.5, 1, 10)
+eps_values <- c(0.01, 0.1, 0.3, 1.0)
+usepoisson_values <- c(FALSE, TRUE)
+
+# Contador de configuraciones
+i<-1
+
+# Orden: Laplace, epsilon y usepoisson
+best_configuration <- c(1000, 1000, FALSE)
+best_f1_score <- 0.0
+best_model <- NULL
+
+
+for(laplace_value in laplace_values) {
+    for(eps_value in eps_values) {
+        for(usepoisson_value in usepoisson_values) {
+
+            # Entrenamos el modelo con la configuración actual
+            training_result <- train_and_evaluate_naive_bayes_with_configuration(i, train, test, laplace_value, eps_value, usepoisson_value)
+            i <- i + 1
+
+            # Commparamos con el mejor modelo actual
+            if(training_result[[1]] > best_f1_score) {
+                best_f1_score = training_result[[1]]
+                best_model = training_result[[2]]
+                best_configuration = c(laplace_value, eps_value, usepoisson_value)
+            }
+
+        }
+    }
+}
+
+
+
+```
+
+Explicar que configurar los hiperparámetros (suavizado de laplace) no ha tenido ninguna influencia relevante en el resultado final. (Lección aprendida)
+Todos los modelos tienen el mismo f1_score
+
+```{r}
+# Imprimimos la configuración que obtuvo el mejor modelo
+print("/////////////////////////////////////////")
+print("Mejor configuración:")
+print(paste("Laplace: ", best_configuration[1], ", eps: ", best_configuration[2], ", usepoisson: ", best_configuration[3]))
+print("Métricas: ")
+print(paste("Precision: ", )
+
+y_pred_train <- predict(best_model, newdata = train)
+cm_train <- confusionMatrix(data=y_pred_train, reference=train$target, positive=">50K", mode = "prec_recall")
+train_precision <- precision(data=y_pred_train, reference=train$target, relevant=">50K")
+train_recall <- recall(data=y_pred_train, reference=train$target, relevant=">50K")
+train_f1 <- F_meas(data=y_pred_train, reference=train$target, relevant=">50K")
+
+y_pred_test <- predict(best_model, newdata = test)
+cm_test <- confusionMatrix(data=y_pred_test, reference=test$target, positive=">50K", mode = "prec_recall")
+test_precision <- precision(data=y_pred_test, reference=test$target, relevant=">50K")
+test_recall <- recall(data=y_pred_test, reference=test$target, relevant=">50K")
+test_f1 <- F_meas(data=y_pred_test, reference=test$target, relevant=">50K")
+
+print(paste("Precision train: ", train_precision, "Precision test: ", test_precision))
+print(paste("Recall train: ", train_recall, "Recall test: ", test_recall))
+print(paste("F1-Score train: ", train_f1, " F1-Score test: ", test_f1))
+
 ```
