@@ -5,6 +5,8 @@ output: html_notebook
 
 This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
 
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
 ```{r}
 set.seed(123) # se establece la semilla para que cada vez que se ejecute el notebook desde el principio salga lo mismo
 
@@ -64,14 +66,11 @@ x_train <- data.frame(predict(dmy, newdata = x_train))
 
 dmy <- dummyVars(" ~ .", data=x_test)
 x_test <- data.frame(predict(dmy, newdata = x_test))
+
+x_test
 ```
 
 ```{r}
-# todas las combinaciones posibles
-mlp_grid = expand.grid(layer1 = c(3, 5, 10),
-                       layer2 = c(3, 5, 10),
-                       layer3 = c(3, 5, 10))
-
 # empleo 4 cores de mi procesador
 cl <- makePSOCKcluster(4)
 registerDoParallel(cl)
@@ -80,11 +79,13 @@ registerDoParallel(cl)
 model <- train(x_train, 
                y_train, 
                metric = "F",
-               method = "mlpML", 
-               tuneGrid = mlp_grid, 
-               maxit = 100, 
-               trControl = trainControl(method = "cv", summaryFunction = prSummary, verboseIter = TRUE, returnData = FALSE, number = 10, sampling = "down"), # number es el núm de veces que vuelve a entrenar
-               preProcess = c("center", "scale", "nzv",)) #nzv elimina las variables que no proporcionan conocimiento (varianza)
+               method = "svmLinear",  
+               trControl = trainControl(method = "repeatedcv", repeats = 10, 
+                                        summaryFunction = prSummary, # calcula precision, recall y F1
+                                        verboseIter = TRUE, 
+                                        returnData = FALSE, 
+                                        number = 10, 
+                                        sampling = "down")) # number es el núm de veces que vuelve a entrenar
 
 # dejo de emplear los 4 cores cuando he acabado de entrenar
 stopCluster(cl)
