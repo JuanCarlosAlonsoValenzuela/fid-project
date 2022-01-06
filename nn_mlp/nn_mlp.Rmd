@@ -20,10 +20,19 @@ test_data <- read.csv("../dataset/test_preprocessed.data", sep=",")
 ```
 
 ```{r}
-y_train <- factor(train_data$target, levels=rev(levels(factor(train_data$target))))
+y_train <- factor(train_data$target, levels=rev(levels(factor(test_data$target))))
 x_train <- train_data[0:13]
 y_test <- factor(test_data$target, levels=rev(levels(factor(test_data$target))))
 x_test <- test_data[0:13]
+
+lvs <- c("normal", "abnormal")
+truth <- factor(rep(lvs, times = c(86, 258)),
+                levels = rev(lvs))
+pred <- factor(
+  c(
+    rep(lvs, times = c(54, 32)),
+    rep(lvs, times = c(27, 231))),               
+  levels = rev(lvs))
 
 x_train$workclass <- factor(x_train$workclass)
 x_train$education <- factor(x_train$education)
@@ -84,7 +93,7 @@ model <- train(x_train,
                tuneGrid = mlp_grid, 
                maxit = 100, 
                trControl = trainControl(method = "cv", summaryFunction = prSummary, verboseIter = TRUE, returnData = FALSE, number = 10, sampling = "down"), # number es el núm de veces que vuelve a entrenar
-               preProcess = c("center", "scale", "nzv",)) #nzv elimina las variables que no proporcionan conocimiento (varianza)
+               preProcess = c("center", "scale", "nzv")) #nzv elimina las variables que no proporcionan conocimiento (varianza)
 
 # dejo de emplear los 4 cores cuando he acabado de entrenar
 stopCluster(cl)
