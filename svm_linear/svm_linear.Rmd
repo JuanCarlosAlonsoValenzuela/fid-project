@@ -22,7 +22,7 @@ test_data <- read.csv("../dataset/test_preprocessed.data", sep=",")
 ```
 
 ```{r}
-y_train <- factor(train_data$target, levels=rev(levels(factor(train_data$target))))
+y_train <- factor(train_data$target, levels=rev(levels(factor(test_data$target))))
 x_train <- train_data[0:13]
 y_test <- factor(test_data$target, levels=rev(levels(factor(test_data$target))))
 x_test <- test_data[0:13]
@@ -66,8 +66,6 @@ x_train <- data.frame(predict(dmy, newdata = x_train))
 
 dmy <- dummyVars(" ~ .", data=x_test)
 x_test <- data.frame(predict(dmy, newdata = x_test))
-
-x_test
 ```
 
 ```{r}
@@ -80,10 +78,10 @@ model <- train(x_train,
                y_train, 
                metric = "F",
                method = "svmLinear",  
-               trControl = trainControl(method = "repeatedcv", repeats = 10, 
+               trControl = trainControl(method = "repeatedcv", 
+                                        repeats = 3, 
                                         summaryFunction = prSummary, # calcula precision, recall y F1
                                         verboseIter = TRUE, 
-                                        returnData = FALSE, 
                                         number = 10, 
                                         sampling = "down")) # number es el núm de veces que vuelve a entrenar
 
