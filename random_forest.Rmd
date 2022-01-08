@@ -100,7 +100,6 @@ train_and_evaluate_random_forest_with_configuration <- function(conf_number, tra
 
     # Predecir en el conjunto de pruebas
     y_pred_test <- predict(model_rf, test_set)
-    print(length(y_pred_test))
     test_precision <- precision(data=y_pred_test, reference=test_set$target, relevant=">50K")
     test_recall <- recall(data=y_pred_test, reference=test_set$target, relevant=">50K")
     test_f1 <- F_meas(data=y_pred_test, reference=test_set$target, relevant=">50K")
