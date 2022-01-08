@@ -21,6 +21,7 @@ library("ggplot2")
 library(ggrepel)
 # install.packages("gridExtra")
 library(gridExtra)
+library(caret)
 ```
 
 
@@ -213,67 +214,105 @@ Estas líneas han sido comentadas porque requieren mucho tiempo (ver csv)
 watchlist <- list(train=dtrain, test=dtest)
 
 
-system.time(
-    logloss_error_hyperparameters <- apply(search_grid, 1, function(parameter_list) {
+# system.time(
+#     logloss_error_hyperparameters <- apply(search_grid, 1, function(parameter_list) {
 
-        # Obtener los parámetros de la configuración
-        current_gamma <- parameter_list[["gamma"]]
-        current_max_depth <- parameter_list[["max_depth"]]
-        current_scale_pos_weight <- parameter_list[["scale_pos_weight"]]
-        current_subsample <- parameter_list[["subsample"]]
+#         # Obtener los parámetros de la configuración
+#         current_gamma <- parameter_list[["gamma"]]
+#         current_max_depth <- parameter_list[["max_depth"]]
+#         current_scale_pos_weight <- parameter_list[["scale_pos_weight"]]
+#         current_subsample <- parameter_list[["subsample"]]
 
-        # Crear el modelo
-        model_gbtree <- xgb.cv(
-            data=dtrain, 
-            gamma = current_gamma,
-            max.depth = current_max_depth,
-            scale_pos_weight = current_scale_pos_weight, 
-            subsample = current_subsample, 
+#         # Crear el modelo
+#         model_gbtree <- xgb.cv(
+#             data=dtrain, 
+#             gamma = current_gamma,
+#             max.depth = current_max_depth,
+#             scale_pos_weight = current_scale_pos_weight, 
+#             subsample = current_subsample, 
             
-            nrounds = 20,
-            nfold = 5,
-            verbose  = 2,
-            print_every_n = 1,
-            nthread = 2, 
-            eval_metric = "logloss",
-            watchlist = watchlist,
-            objective = "binary:logistic",
-            booster = "gbtree"
-        )
+#             nrounds = 20,
+#             nfold = 5,
+#             verbose  = 2,
+#             print_every_n = 1,
+#             nthread = 2, 
+#             eval_metric = "logloss",
+#             watchlist = watchlist,
+#             objective = "binary:logistic",
+#             booster = "gbtree"
+#         )
 
-        validation_scores <- as.data.frame(model_gbtree$evaluation_log)
-        print(colnames(validation_scores))
+#         validation_scores <- as.data.frame(model_gbtree$evaluation_log)
+#         print(colnames(validation_scores))
 
-        logloss <- tail(validation_scores$test_logloss_mean, 1)
-        t_logloss <- tail(validation_scores$train_logloss_mean, 1)
+#         logloss <- tail(validation_scores$test_logloss_mean, 1)
+#         t_logloss <- tail(validation_scores$train_logloss_mean, 1)
 
-        output <- return(c(logloss, t_logloss, current_gamma, current_max_depth, current_scale_pos_weight, current_subsample))
+#         output <- return(c(logloss, t_logloss, current_gamma, current_max_depth, current_scale_pos_weight, current_subsample))
 
-    })
+#     })
+# )
+
+
+```
+
+Estas líneas han sido comentadas porque requieren mucho tiempo (ver csv)
+
+```{r}
+# output <- as.data.frame(t(logloss_error_hyperparameters))
+# varnames <- c("Test_logloss", "Train_logloss", "gamma", "max_depth", "scale_pos_weight", "subsample")
+# names(output) <- varnames
+# head(output)
+```
+
+Estas líneas han sido comentadas porque requieren mucho tiempo (ver csv)
+```{r}
+# write.csv(output, "output_xgboost_tree_booster.csv")	
+```
+
+Volvemos a entrenar el mejor modelo 
+```{r}
+
+best_model <- xgb.train(data=dtrain, 
+                        gamma=0.0, 
+                        max.depth=10, 
+                        scale_pos_weight=1.0, 
+                        subsample=0.6, 
+                        nrounds=20, 
+                        nfold=5, 
+                        verbose=2, 
+                        print_every_n=1, 
+                        nthread=2, 
+                        eval_metric="logloss", 
+                        watchlist= watchlist, 
+                        objective="binary:logistic", 
+                        booster="gbtree"
 )
 
-
 ```
 
-Estas líneas han sido comentadas porque requieren mucho tiempo (ver csv)
 
 ```{r}
-output <- as.data.frame(t(logloss_error_hyperparameters))
-varnames <- c("Test_logloss", "Train_logloss", "gamma", "max_depth", "scale_pos_weight", "subsample")
-names(output) <- varnames
-head(output)
+
+y_pred_train <- predict(best_model, newdata=dtrain)
+y_pred_train <- as.integer(y_pred_train>=0.5)
+y_pred_train <- as.factor(y_pred_train)
+
+y_train <- as.factor(y_train)
+
+cm_train <- confusionMatrix(data=y_pred_train, reference=y_train, positive="1", mode = "prec_recall")
+cm_train
 ```
 
-Estas líneas han sido comentadas porque requieren mucho tiempo (ver csv)
+
 ```{r}
-write.csv(output, "output_xgboost_tree_booster.csv")	
+
+y_pred_test <- predict(best_model, newdata=dtest)
+y_pred_test <- as.integer(y_pred_test>=0.5)
+y_pred_test <- as.factor(y_pred_test)
+
+y_test <- as.factor(y_test)
+
+cm_test <- confusionMatrix(data=y_pred_test, reference=y_test, positive="1", mode = "prec_recall")
+cm_test
 ```
-
-```{r}
-	
-```
-
------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-
-
