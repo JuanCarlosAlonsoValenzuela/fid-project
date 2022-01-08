@@ -1,11 +1,8 @@
 # Naive Bayes
-En este notebook se aplica el modelo probabilístico Naive Bayes
-Ventajas e inconvenientes de Naive Bayes
-Se ha consultado la documentación del paquete Caret de NB (https://rpubs.com/maulikpatel/224581), partiendo los conocimientos adquiridos con los notebooks estudiados durante el curso.
+En este notebook se aplica el modelo probabilístico Naive Bayes, se ha utilizado la librería [naiveBayes](https://rpubs.com/maulikpatel/224581)
 
-## Carga de datos
+# Carga de datos
 Comenzamos cargando las librerías necesarias.
-El paquete klarR es...
 
 ```{r}
 library(naivebayes)
@@ -29,18 +26,10 @@ dim(test)
 summary(train)
 ```
 
-Los atributos que se usarán para el entrenamiento son:
-age, workclass, fnlwgt, education, marital_status, occupation, relationship, race, 
-sex, native_country, hours_per_week_categorical, has_capital_gain, has_capital_loss
+# Preparación y preprocesado de los datos 
+La clase a predecir es target (Posibles valores: <=50K, >50K).
 
-TODO: CONVERTIR fnlwgt A CATEGÓRICO
-Convertimos el atributo age a categórico (grupos de 10 años)
-
-Tener en cuenta que: age es numérico (convertir a categórico?), education_num es redundante, 
-capital_gain y capital_loss han sido convertidos a categóricos, hours_per_week es categórico
-
-La variable a predecir es target (Posibles valores: <=50K, >50K).
-
+Age es un atributo numérico, por lo que lo convertimos a categórico utilizando la siguiente función:
 ```{r}
 convert_age_to_categorical <- function(x) {
     age <- as.numeric(x['age'])
@@ -49,6 +38,8 @@ convert_age_to_categorical <- function(x) {
     return(decade)
 }	
 ```	
+
+Aplicamos la función definida en el chunk anterior a los conjuntos de entrenamiento y pruebas:
 
 ```{r}	
 decade_train <- apply(train, 1, convert_age_to_categorical)
@@ -59,6 +50,8 @@ test <- cbind(test, decade=decade_test)
 head(train)
 head(test)
 ```
+
+Definimos una función que transforme los valores de los atributos para que R pueda interpretarlos correctamente, por ejemplo, identificando las variables categóricas como tal, en lugar de como simples strings.
 
 ```{r}
 transform_data <- function(dataframe) {
@@ -75,6 +68,8 @@ transform_data <- function(dataframe) {
 }
 ```
 
+Aplicamos la transformación a los conjuntos de entrenamiento y pruebas:
+
 ```{r}
 train <- transform_data(train)
 summary(train)	
@@ -84,6 +79,8 @@ test <- transform_data(test)
 summary(test)
 dim(test)
 ```
+
+Seleccionamos los atributos que se emplearán para entrenar y evaluar el modelo. Descartamos las versiones numéricas de todos los atributos.
 
 ```{r}
 # Removed fnlwgt and age
@@ -106,13 +103,9 @@ summary(train)
 summary(test)
 ```
 
+# Entrenamiento del modelo y optimización de hiperparámetros
+La función inferior define el modelo Naive Bayes y se aplica a los conjuntos de entrenamiento y pruebas dados unos valores de los hiperparámetros laplace y epsilon. También calcula el rendimiento del modelo en los conjuntos de entrenamiento y pruebas en términos de precision, recall y F1-Score.
 
-# Entrenamiento del modelo
-
-```{r}
-# help(confusionMatrix)
-```
-	
 ```{r}
 train_and_evaluate_naive_bayes_with_configuration <- function(conf_number, train_set, test_set, 
                                 laplace_value, eps_value) {
@@ -147,8 +140,9 @@ train_and_evaluate_naive_bayes_with_configuration <- function(conf_number, train
 }
 ```
 
-Definimos los hiperparámetros (explicar que la función Naive Bayes no admite GridSearch, por lo que la hacemos a mano)
-
+Definimos los valores de los hiperparámetros que se usarán en Grid Search. La función de Naive Bayes no admite grid search, por lo que se ha implementado a mano utilizando bucles for anidados. Los hiperparámetros usados
+son laplace y epsilon, que permiten configurar el suavizado de la probabilidad, evitando que la probabilidad de pertenencia a una clase sea 0. Ejecutamos la función definida en el chunk anterior con todas las configuraciones definidas,
+obteniendo el mejor modelo.
 
 ```{r}
 set.seed(123)
@@ -189,8 +183,10 @@ for(laplace_value in laplace_values) {
 
 ```
 
-Explicar que configurar los hiperparámetros (suavizado de laplace) no ha tenido ninguna influencia relevante en el resultado final. (Lección aprendida)
-Todos los modelos tienen el mismo f1_score
+# Interpretación de los resultados.
+Podemos ver que la configuración de los hiperparámetros no ha tenido demasiado impacto en los resultados obtenidos, ya que todos los modelos han obtenido un F1-Score en el conjunto de pruebas que oscilaba entre un 0.6568 y un 0.6573, siendo los mejores modelos (aunque por una diferencia ínfima) aquellos 
+con un valor de laplace igual a 0. Las métricas y la matriz de confusión revelan que existe una cantidad considerable de falsos positivos en la clasificación (esto se ve reflejado, por ejemplo, en los bajos valores de precision), lo que muestra que el modelo tiene cierta tendencia a clasificar instancias negativas (<=50K)
+como positivas (>50K).
 
 ```{r}
 # Imprimimos la configuración que obtuvo el mejor modelo
@@ -217,7 +213,7 @@ print(paste("F1-Score train: ", train_f1, " F1-Score test: ", test_f1))
 
 ```
 
-Imprimir y explicar matrices de confusión
+Matrices de confusión:
 ```{r}
 cm_train
 cm_test	
