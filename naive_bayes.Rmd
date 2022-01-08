@@ -1,10 +1,11 @@
 # Naive Bayes
-En este notebook se aplica el modelo probabilístico Naive Bayes, se ha utilizado la librería [naiveBayes](https://rpubs.com/maulikpatel/224581), así como el paquete [Caret](https://topepo.github.io/caret/) para calcular las métricas
+En este notebook se aplica el modelo probabilístico Naive Bayes, se ha utilizado la función [naiveBayes](https://rpubs.com/maulikpatel/224581), así como el paquete [Caret](https://topepo.github.io/caret/) para calcular las métricas
 
 # Carga de datos
 Comenzamos cargando las librerías necesarias.
 
 ```{r}
+set.seed(123)
 library(naivebayes)
 library("klaR")
 library("caret")
@@ -144,8 +145,6 @@ son laplace y epsilon, que permiten configurar el suavizado de la probabilidad, 
 obteniendo el mejor modelo.
 
 ```{r}
-set.seed(123)
-
 # Se entrenarán un total de 16 modelos, seleccionando el mejor de todos
 laplace_values <- c(0, 0.5, 1, 10)
 eps_values <- c(0.01, 0.1, 0.3, 1.0)
