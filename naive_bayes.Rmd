@@ -115,14 +115,14 @@ summary(test)
 	
 ```{r}
 train_and_evaluate_naive_bayes_with_configuration <- function(conf_number, train_set, test_set, 
-                                laplace_value, eps_value, usepoisson_value) {
+                                laplace_value, eps_value) {
     # Print configuration used
     # Configuración #X, laplace=Y, eps=Z, usepoisson=W
     print("####################################")
-    print(paste("Configuración #", conf_number, ", laplace=", laplace_value, ", eps=", eps_value, ", usepoisson=", usepoisson_value))
+    print(paste("Configuración #", conf_number, ", laplace=", laplace_value, ", eps=", eps_value))
 
     # Train model
-    model_nb <- naiveBayes(target ~ ., data=train_set, laplace=laplace_value, eps=eps_value, usepoisson=usepoisson_value)
+    model_nb <- naiveBayes(target ~ ., data=train_set, laplace=laplace_value, eps=eps_value)
 
     # Predict on train set
     y_pred_train <- predict(model_nb, newdata = train_set)
@@ -156,33 +156,32 @@ set.seed(123)
 # Se entrenarán un total de 32 modelos, seleccionando el mejor de todos
 laplace_values <- c(0, 0.5, 1, 10)
 eps_values <- c(0.01, 0.1, 0.3, 1.0)
-usepoisson_values <- c(FALSE, TRUE)
 
 # Contador de configuraciones
 i<-1
 
 # Orden: Laplace, epsilon y usepoisson
-best_configuration <- c(1000, 1000, FALSE)
+best_configuration <- c(1000, 1000)
 best_f1_score <- 0.0
 best_model <- NULL
 
 
 for(laplace_value in laplace_values) {
     for(eps_value in eps_values) {
-        for(usepoisson_value in usepoisson_values) {
 
-            # Entrenamos el modelo con la configuración actual
-            training_result <- train_and_evaluate_naive_bayes_with_configuration(i, train, test, laplace_value, eps_value, usepoisson_value)
-            i <- i + 1
 
-            # Commparamos con el mejor modelo actual
-            if(training_result[[1]] > best_f1_score) {
-                best_f1_score = training_result[[1]]
-                best_model = training_result[[2]]
-                best_configuration = c(laplace_value, eps_value, usepoisson_value)
-            }
+        # Entrenamos el modelo con la configuración actual
+        training_result <- train_and_evaluate_naive_bayes_with_configuration(i, train, test, laplace_value, eps_value)
+        i <- i + 1
 
+        # Commparamos con el mejor modelo actual
+        if(training_result[[1]] > best_f1_score) {
+            best_f1_score = training_result[[1]]
+            best_model = training_result[[2]]
+            best_configuration = c(laplace_value, eps_value)
         }
+
+        
     }
 }
 
@@ -197,7 +196,7 @@ Todos los modelos tienen el mismo f1_score
 # Imprimimos la configuración que obtuvo el mejor modelo
 print("/////////////////////////////////////////")
 print("Mejor configuración:")
-print(paste("Laplace: ", best_configuration[1], ", eps: ", best_configuration[2], ", usepoisson: ", best_configuration[3]))
+print(paste("Laplace: ", best_configuration[1], ", eps: ", best_configuration[2]))
 print("Métricas: ")
 
 y_pred_train <- predict(best_model, newdata = train)
