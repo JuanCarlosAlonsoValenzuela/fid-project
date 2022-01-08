@@ -1,8 +1,8 @@
-# XGBoost con gblinear booster
-Explicar conceptos teóricos
-Explicar que vamos a aplicar x variantes distintas de xgboost
+# XGBoost lineal
+En este notebook se aplica XGBoost con el booster lineal. La documentación de esta librería puede encontrarse [aquí](https://xgboost.readthedocs.io/en/stable/R-package/xgboostPresentation.html).
 
-Comenzamos, como siempre, importando las librerías necesarias
+# Carga de datos
+Comenzamos importando las librerías necesarias
 
 ```{r}
 set.seed(123)
@@ -37,7 +37,9 @@ head(test)
 dim(test)
 ```
 
-Convertimos el atributo country en booleano (TODO: Explicar que esto se hace con el one-hot encoding en mente)
+# Preparación y preprocesado de los datos 
+Convertimos el atributo country en booleano, para que XGBoost pueda trabajar con dicho atributo sin crear un número excesivo de atributos (ya que, de no aplicar este paso, se generaría un atributo para cada uno de los 41 países del dataset)
+
 ```{r}
 convert_country_to_categorical <- function(x) {
     country <- x['native_country']
@@ -48,6 +50,8 @@ convert_country_to_categorical <- function(x) {
     }
 }	
 ```	
+
+Aplicamos la función definida en el chunk anterior al conjunto de entrenamiento y pruebas
 
 ```{r}
 born_in_usa_train <- apply(train, 1, convert_country_to_categorical)
@@ -61,7 +65,7 @@ test <- cbind(test, born_in_usa=born_in_usa_test)
 head(test)
 ```	
 
-Transform data:
+Definimos una función que transforme los valores de los atributos para que R pueda interpretarlos correctamente, por ejemplo, identificando las variables categóricas como tal, en lugar de como simples strings.
 
 ```{r}
 transform_data <- function(dataframe) {
@@ -85,8 +89,8 @@ test <- transform_data(test)
 summary(test)
 ```
 
-# Preparación de los datos que serán usados por el modelo
 Seleccionamos las columnas que usaremos para entrenar el modelo
+
 ```{r}
 selected_attributes <- c("age", "workclass", "fnlwgt", "education", "marital_status",  "occupation", "relationship", 
 "race", "sex", "hours_per_week_categorical", "has_capital_gain", "has_capital_loss", "born_in_usa")
@@ -98,9 +102,8 @@ x_test <- test[selected_attributes]
 y_test <- test$target
 ``` 
 
-xgboost recibe una matriz, no un dataframe, es necesario convertir las variables categóricas en numéricas.
+xgboost recibe una matriz, no un dataframe, es necesario convertir las variables categóricas en numéricas, para ello aplicamos one-hot encoding en las columnas categóricas.
 
-Convert to one-hot encoding the following attributes:
 ```{r}
 head(x_train)
 ```
@@ -156,6 +159,8 @@ convert_to_one_hot <- function(dataframe) {
 
 ```
 
+Aplicamos la conversión a one_hot
+
 ```{r}
 x_train <- convert_to_one_hot(x_train)
 head(x_train)
@@ -164,7 +169,6 @@ x_test <- convert_to_one_hot(x_test)
 head(x_test)
 ```
 
-TODO: Convertir target en boolean
 
 ```{r}
 summary(y_test)
@@ -178,11 +182,7 @@ y_test <- as.integer(y_test[]==">50K")
 head(y_test)
 ```
 
-# Modelo 1: XGBoost Con tree booster
-Explicar
-Recibe hiperparámetros exclusivos de esta configuración. Los creamos en el siguiente snippet de código:
-TODO: Explicar hiperparámetros
-TODO: Explicar parámetros fijos del modelo (watchlist, early_stopping_rounds, num_boost_rounds)
+# Entrenamiento del modelo y optimización de hiperparámetros
 
 ```{r}
 x_train <- as.matrix(x_train)
@@ -195,6 +195,7 @@ dtrain <- xgb.DMatrix(x_train, label=y_train)
 dtest <- xgb.DMatrix(x_test, label=y_test)	
 ```	
 
+Definimos los posibles valores que tendrán los hiperparámetros que serán optimizados con grid search.
 
 
 ```{r}
@@ -205,6 +206,9 @@ search_grid <- expand.grid(
 )
 
 ```
+
+En las siguientes líneas se aplica la optimización de hiperparámetros, entrenando un total de 36 configuraciones diferentes. Sin embargo, debido a su amplio tiempo de ejecución, estas líneas se han comentado, pueden verse los resultados obtenidos en el csv generado.
+
 
 ```{r}
 watchlist <- list(train=dtrain, test=dtest)
@@ -261,7 +265,7 @@ watchlist <- list(train=dtrain, test=dtest)
 # write.csv(output, "output_xgboost_linear_booster.csv")	
 ```
 
-Volvemos a entrenar el mejor modelo 
+Volvemos a entrenar el mejor modelo con la configuración obtenida
 
 ```{r}
 best_model <- xgb.train(data=dtrain, 
@@ -281,6 +285,7 @@ best_model <- xgb.train(data=dtrain,
 )
 ```
 
+Imprimimos el rendimiento del modelo  en los conjuntos de entrenamiento y pruebas, así como la matriz de confusión
 
 ```{r}
 

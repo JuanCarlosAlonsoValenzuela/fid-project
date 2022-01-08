@@ -39,6 +39,7 @@ dim(test)
 
 # Preparación y preprocesado de los datos 
 Convertimos el atributo country en booleano, para que XGBoost pueda trabajar con dicho atributo sin crear un número excesivo de atributos (ya que, de no aplicar este paso, se generaría un atributo para cada uno de los 41 países del dataset)
+
 ```{r}
 convert_country_to_categorical <- function(x) {
     country <- x['native_country']
@@ -89,6 +90,7 @@ summary(test)
 ```
 
 Seleccionamos las columnas que usaremos para entrenar el modelo
+
 ```{r}
 selected_attributes <- c("age", "workclass", "fnlwgt", "education", "marital_status",  "occupation", "relationship", 
 "race", "sex", "hours_per_week_categorical", "has_capital_gain", "has_capital_loss", "born_in_usa")
