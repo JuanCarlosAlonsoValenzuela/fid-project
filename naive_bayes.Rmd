@@ -1,11 +1,8 @@
 # Naive Bayes
-En este notebook se aplica el modelo probabilístico Naive Bayes
-Ventajas e inconvenientes de Naive Bayes
-Se ha consultado la documentación del paquete Caret de NB (https://rpubs.com/maulikpatel/224581), partiendo los conocimientos adquiridos con los notebooks estudiados durante el curso.
+En este notebook se aplica el modelo probabilístico Naive Bayes, se ha utilizado la librería [naiveBayes](https://rpubs.com/maulikpatel/224581), así como el paquete [Caret](https://topepo.github.io/caret/) para calcular las métricas
 
-## Carga de datos
+# Carga de datos
 Comenzamos cargando las librerías necesarias.
-El paquete klarR es...
 
 ```{r}
 library(naivebayes)
@@ -29,18 +26,10 @@ dim(test)
 summary(train)
 ```
 
-Los atributos que se usarán para el entrenamiento son:
-age, workclass, fnlwgt, education, marital_status, occupation, relationship, race, 
-sex, native_country, hours_per_week_categorical, has_capital_gain, has_capital_loss
+# Preparación y preprocesado de los datos 
+La clase a predecir es target (Posibles valores: <=50K, >50K).
 
-TODO: CONVERTIR fnlwgt A CATEGÓRICO
-Convertimos el atributo age a categórico (grupos de 10 años)
-
-Tener en cuenta que: age es numérico (convertir a categórico?), education_num es redundante, 
-capital_gain y capital_loss han sido convertidos a categóricos, hours_per_week es categórico
-
-La variable a predecir es target (Posibles valores: <=50K, >50K).
-
+Age es un atributo numérico, por lo que lo convertimos a categórico utilizando la siguiente función:
 ```{r}
 convert_age_to_categorical <- function(x) {
     age <- as.numeric(x['age'])
@@ -49,6 +38,8 @@ convert_age_to_categorical <- function(x) {
     return(decade)
 }	
 ```	
+
+Aplicamos la función definida en el chunk anterior a los conjuntos de entrenamiento y pruebas:
 
 ```{r}	
 decade_train <- apply(train, 1, convert_age_to_categorical)
@@ -59,6 +50,8 @@ test <- cbind(test, decade=decade_test)
 head(train)
 head(test)
 ```
+
+Definimos una función que transforme los valores de los atributos para que R pueda interpretarlos correctamente, por ejemplo, identificando las variables categóricas como tal, en lugar de como simples strings.
 
 ```{r}
 transform_data <- function(dataframe) {
@@ -75,6 +68,8 @@ transform_data <- function(dataframe) {
 }
 ```
 
+Aplicamos la transformación a los conjuntos de entrenamiento y pruebas:
+
 ```{r}
 train <- transform_data(train)
 summary(train)	
@@ -85,8 +80,9 @@ summary(test)
 dim(test)
 ```
 
+Seleccionamos los atributos que se emplearán para entrenar y evaluar el modelo. Descartamos las versiones numéricas de todos los atributos.
+
 ```{r}
-# Removed fnlwgt and age
 selected_attributes <- c("decade", "workclass", "education", "marital_status", "occupation", "relationship", 
 "race", "sex", "native_country", "hours_per_week_categorical", "has_capital_gain", "has_capital_loss", "target")
 train <- train[selected_attributes]
@@ -106,83 +102,79 @@ summary(train)
 summary(test)
 ```
 
+# Entrenamiento del modelo y optimización de hiperparámetros
+La función inferior define el modelo Naive Bayes y se aplica a los conjuntos de entrenamiento y pruebas dados unos valores de los hiperparámetros laplace y epsilon. También calcula el rendimiento del modelo en los conjuntos de entrenamiento y pruebas en términos de precision, recall y F1-Score.
 
-# Entrenamiento del modelo
-
-```{r}
-# help(confusionMatrix)
-```
-	
 ```{r}
 train_and_evaluate_naive_bayes_with_configuration <- function(conf_number, train_set, test_set, 
-                                laplace_value, eps_value, usepoisson_value) {
-    # Print configuration used
-    # Configuración #X, laplace=Y, eps=Z, usepoisson=W
+                                laplace_value, eps_value) {
+    # Imprimir configuración usada
+    # Configuración #X, laplace=Y, eps=Z
     print("####################################")
-    print(paste("Configuración #", conf_number, ", laplace=", laplace_value, ", eps=", eps_value, ", usepoisson=", usepoisson_value))
+    print(paste("Configuración #", conf_number, ", laplace=", laplace_value, ", eps=", eps_value))
 
-    # Train model
-    model_nb <- naiveBayes(target ~ ., data=train_set, laplace=laplace_value, eps=eps_value, usepoisson=usepoisson_value)
+    # Entrenar modelo
+    model_nb <- naiveBayes(target ~ ., data=train_set, laplace=laplace_value, eps=eps_value)
 
-    # Predict on train set
+    # Predecir en el conjunto de entrenamiento
     y_pred_train <- predict(model_nb, newdata = train_set)
 
     train_precision <- precision(data=y_pred_train, reference=train_set$target, relevant=">50K")
     train_recall <- recall(data=y_pred_train, reference=train_set$target, relevant=">50K")
     train_f1 <- F_meas(data=y_pred_train, reference=train_set$target, relevant=">50K")
 
-    # Predict on test set
+    # Predecir en el conjunto de pruebas
     y_pred_test <- predict(model_nb, newdata = test_set)
 
     test_precision <- precision(data=y_pred_test, reference=test_set$target, relevant=">50K")
     test_recall <- recall(data=y_pred_test, reference=test_set$target, relevant=">50K")
     test_f1 <- F_meas(data=y_pred_test, reference=test_set$target, relevant=">50K")
 
-    # Print metrics in both training and test set (in a single line)
+    # Imprimir métricas
     print(paste("Train Precision: ", train_precision, " Recall: ", train_recall, " F1-Score ", train_f1))
     print(paste("Test Precision: ", test_precision, " Recall: ", test_recall, " F1-Score ", test_f1))
 
-    # Return F1-Score
+    # Devolver modelo y  f1 score
     return(list(test_f1, model_nb))
 }
 ```
 
-Definimos los hiperparámetros (explicar que la función Naive Bayes no admite GridSearch, por lo que la hacemos a mano)
-
+Definimos los valores de los hiperparámetros que se usarán en Grid Search. La función de Naive Bayes no admite grid search, por lo que se ha implementado a mano utilizando bucles for anidados. Los hiperparámetros usados
+son laplace y epsilon, que permiten configurar el suavizado de la probabilidad, evitando que la probabilidad de pertenencia a una clase sea 0. Ejecutamos la función definida en el chunk anterior con todas las configuraciones definidas,
+obteniendo el mejor modelo.
 
 ```{r}
 set.seed(123)
 
-# Se entrenarán un total de 32 modelos, seleccionando el mejor de todos
+# Se entrenarán un total de 16 modelos, seleccionando el mejor de todos
 laplace_values <- c(0, 0.5, 1, 10)
 eps_values <- c(0.01, 0.1, 0.3, 1.0)
-usepoisson_values <- c(FALSE, TRUE)
 
 # Contador de configuraciones
 i<-1
 
-# Orden: Laplace, epsilon y usepoisson
-best_configuration <- c(1000, 1000, FALSE)
+# Orden: Laplace, epsilon
+best_configuration <- c(1000, 1000)
 best_f1_score <- 0.0
 best_model <- NULL
 
 
 for(laplace_value in laplace_values) {
     for(eps_value in eps_values) {
-        for(usepoisson_value in usepoisson_values) {
 
-            # Entrenamos el modelo con la configuración actual
-            training_result <- train_and_evaluate_naive_bayes_with_configuration(i, train, test, laplace_value, eps_value, usepoisson_value)
-            i <- i + 1
 
-            # Commparamos con el mejor modelo actual
-            if(training_result[[1]] > best_f1_score) {
-                best_f1_score = training_result[[1]]
-                best_model = training_result[[2]]
-                best_configuration = c(laplace_value, eps_value, usepoisson_value)
-            }
+        # Entrenamos el modelo con la configuración actual
+        training_result <- train_and_evaluate_naive_bayes_with_configuration(i, train, test, laplace_value, eps_value)
+        i <- i + 1
 
+        # Commparamos con el mejor modelo actual
+        if(training_result[[1]] > best_f1_score) {
+            best_f1_score = training_result[[1]]
+            best_model = training_result[[2]]
+            best_configuration = c(laplace_value, eps_value)
         }
+
+        
     }
 }
 
@@ -190,14 +182,16 @@ for(laplace_value in laplace_values) {
 
 ```
 
-Explicar que configurar los hiperparámetros (suavizado de laplace) no ha tenido ninguna influencia relevante en el resultado final. (Lección aprendida)
-Todos los modelos tienen el mismo f1_score
+# Interpretación de los resultados.
+Podemos ver que la configuración de los hiperparámetros no ha tenido demasiado impacto en los resultados obtenidos, ya que todos los modelos han obtenido un F1-Score en el conjunto de pruebas que oscilaba entre un 0.6568 y un 0.6573, siendo los mejores modelos (aunque por una diferencia ínfima) aquellos 
+con un valor de laplace igual a 0. Las métricas y la matriz de confusión revelan que existe una cantidad considerable de falsos positivos en la clasificación (esto se ve reflejado, por ejemplo, en los bajos valores de precision), lo que muestra que el modelo tiene cierta tendencia a clasificar instancias negativas (<=50K)
+como positivas (>50K).
 
 ```{r}
 # Imprimimos la configuración que obtuvo el mejor modelo
 print("/////////////////////////////////////////")
 print("Mejor configuración:")
-print(paste("Laplace: ", best_configuration[1], ", eps: ", best_configuration[2], ", usepoisson: ", best_configuration[3]))
+print(paste("Laplace: ", best_configuration[1], ", eps: ", best_configuration[2]))
 print("Métricas: ")
 
 y_pred_train <- predict(best_model, newdata = train)
@@ -218,7 +212,7 @@ print(paste("F1-Score train: ", train_f1, " F1-Score test: ", test_f1))
 
 ```
 
-Imprimir y explicar matrices de confusión
+Matrices de confusión:
 ```{r}
 cm_train
 cm_test	

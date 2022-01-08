@@ -1,0 +1,146 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+```{r}
+#Instalacion de paquetes y librerias usadas
+install.packages('corrplot')
+install.packages('GGally')
+install.packages('cluster')
+install.packages('factoextra')
+install.packages('dendextend')
+library(GGally)
+library(corrplot)
+library(cluster)
+library(tidyverse)  
+library(factoextra) 
+library(dendextend)
+```
+
+
+```{r}
+#Carga de datos y exploración de los mismos
+datos<-read.csv("dataset/heart.csv", sep = ",")
+
+head(datos)
+str(datos)
+dim(datos) 
+summary(datos)
+
+#datos <- as.matrix(datos[2:14])
+datos2 <- as.matrix(datos[1:5])
+```
+
+
+```{r}
+# Escalado de datos y definición de la seed
+set.seed(5)
+datosNorm <- as.data.frame(scale(datos))
+datos2Norm <- scale(datos2)
+
+#Comprobación de k para cluster
+vector_compactacion<-0
+
+for(i in 1:15){
+  km_datos_aux2<-kmeans(datosNorm,center=i,nstar=20)
+  vector_compactacion[i] <- km_datos_aux2$tot.withinss
+}
+
+par(mfrow = c(1,1))
+
+# Representamos sum of squares vs. number of clusters
+plot(1:15, vector_compactacion, type = "b", 
+     xlab = "Numero de clusters", 
+     #ylab = "Within groups sum of squares")
+     ylab = "Compactacion")
+
+
+```
+
+```{r}
+#Creación y representación de un cluster k2 para cada atributo de la tabla
+datos_k2 <- kmeans(datosNorm, centers=3, nstar=25)
+
+datos_k2$cluster
+datos_k2$size
+
+ggpairs(cbind(datos, Cluster=as.factor(datos_k2$cluster)),
+        columns=1:14, aes(colour=Cluster, alpha=0.5),
+        lower=list(continuous="points"),
+        upper=list(continuous="blank"),
+        axisLabels="none", switch="both") +
+        theme_bw()
+```
+```{r}
+#Para realizar un cluster jerarquico aglomerativo, calculamos sus coeficientes para encontrar el método más eficaz
+m <- c( "average", "single", "complete", "ward")
+names(m) <- c( "average", "single", "complete", "ward")
+
+coeficientes <- function(x) {
+  agnes(datosNorm, method = x)$ac
+}
+map_dbl(m, coeficientes)
+
+```
+
+
+```{r}
+#Calculamos el dendograma mediante el método ward
+hclust.ward <- agnes(datosNorm, method = "ward")
+pltree(hclust.ward, cex = 0.3, hang =-1, main = "Dendograma de agregación (metodo Ward)")
+```
+
+```{r}
+#Para calcular el número de clusters, podemos hacer aproximaciones similares a las realizadas en los cluster k-means
+#Método del codo
+fviz_nbclust(datosNorm, FUN = hcut, method = "wss")
+#Método de media de siluetas
+fviz_nbclust(datosNorm, FUN = hcut, method = "silhouette")
+#Método estadistica de brecha
+brecha_estad <- clusGap(datosNorm, FUN = hcut, nstart = 25, K.max = 20, B = 50)
+fviz_gap_stat(brecha_estad)
+```
+
+
+```{r}
+#Probamos con los valores k=2, k=3 y k= 5
+tree_aux <- cutree(as.hclust(hclust.ward), k = 2)
+table(tree_aux)
+fviz_cluster(list(data = datosNorm, cluster = tree_aux))
+
+tree_aux <- cutree(as.hclust(hclust.ward), k = 3)
+table(tree_aux)
+fviz_cluster(list(data = datosNorm, cluster = tree_aux))
+
+tree_aux <- cutree(as.hclust(hclust.ward), k = 5)
+table(tree_aux)
+fviz_cluster(list(data = datosNorm, cluster = tree_aux))
+
+```
+```{r}
+#Repetimos el experimento pero en esta ocasion para un cluster jerarquico de division
+hclust.diana <- diana(datosNorm)
+tree_aux <- cutree(as.hclust(hclust.diana), k = 2)
+table(tree_aux)
+fviz_cluster(list(data = datosNorm, cluster = tree_aux))
+
+tree_aux <- cutree(as.hclust(hclust.diana), k = 3)
+table(tree_aux)
+fviz_cluster(list(data = datosNorm, cluster = tree_aux))
+
+tree_aux <- cutree(as.hclust(hclust.diana), k = 5)
+table(tree_aux)
+fviz_cluster(list(data = datosNorm, cluster = tree_aux))
+```
+
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
