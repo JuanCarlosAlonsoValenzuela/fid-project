@@ -216,3 +216,6 @@ Matrices de confusión:
 cm_train
 cm_test	
 ```
+
+```{r}
+```

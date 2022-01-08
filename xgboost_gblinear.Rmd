@@ -21,6 +21,7 @@ library("ggplot2")
 library(ggrepel)
 # install.packages("gridExtra")
 library(gridExtra)
+library(caret)
 ```
 
 
@@ -206,7 +207,7 @@ search_grid <- expand.grid(
 ```
 
 ```{r}
-# watchlist <- list(train=dtrain, test=dtest)
+watchlist <- list(train=dtrain, test=dtest)
 
 
 # system.time(
@@ -260,12 +261,50 @@ search_grid <- expand.grid(
 # write.csv(output, "output_xgboost_linear_booster.csv")	
 ```
 
+Volvemos a entrenar el mejor modelo 
 
-
-
-# ```
 ```{r}
+best_model <- xgb.train(data=dtrain, 
 
+                        updater = "shotgun",
+                        feature_selector = "shuffle",
+                        
+                        nrounds = 20,
+                        nfold=5, 
+                        verbose=2, 
+                        print_every_n=1, 
+                        nthread=5, 
+                        eval_metric="logloss", 
+                        watchlist= watchlist, 
+                        objective="binary:logistic", 
+                        booster="gblinear"
+)
 ```
 
 
+```{r}
+
+y_pred_train <- predict(best_model, newdata=dtrain)
+y_pred_train <- as.integer(y_pred_train>=0.5)
+y_pred_train <- as.factor(y_pred_train)
+
+y_train <- as.factor(y_train)
+
+cm_train <- confusionMatrix(data=y_pred_train, reference=y_train, positive="1", mode = "prec_recall")
+cm_train
+```
+
+```{r}
+
+y_pred_test <- predict(best_model, newdata=dtest)
+y_pred_test <- as.integer(y_pred_test>=0.5)
+y_pred_test <- as.factor(y_pred_test)
+
+y_test <- as.factor(y_test)
+
+cm_test <- confusionMatrix(data=y_pred_test, reference=y_test, positive="1", mode = "prec_recall")
+cm_test
+```
+
+```{r}
+```
