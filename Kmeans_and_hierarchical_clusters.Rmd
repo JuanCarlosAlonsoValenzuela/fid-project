@@ -1,30 +1,22 @@
----
-title: "R Notebook"
-output: html_notebook
----
 
-This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
-
-Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+###Instalacion de paquetes y librerias usadas
+```{r}
+install.packages(c('corrplot','GGally','cluster','factoextra','dendextend',"ClusterR"), repos = "http://cran.us.r-project.org")
+```
 
 ```{r}
-#Instalacion de paquetes y librerias usadas
-install.packages('corrplot')
-install.packages('GGally')
-install.packages('cluster')
-install.packages('factoextra')
-install.packages('dendextend')
 library(GGally)
 library(corrplot)
 library(cluster)
 library(tidyverse)  
 library(factoextra) 
 library(dendextend)
+library(ClusterR)
 ```
-
+###Carga de datos y exploración de los mismos
 
 ```{r}
-#Carga de datos y exploración de los mismos
+
 datos<-read.csv("dataset/heart.csv", sep = ",")
 
 head(datos)
@@ -32,18 +24,19 @@ str(datos)
 dim(datos) 
 summary(datos)
 
-#datos <- as.matrix(datos[2:14])
-datos2 <- as.matrix(datos[1:5])
+datos_matrix <- as.matrix(datos[1:13])
+#datos2 <- as.matrix(datos[1:5])
 ```
 
 
 ```{r}
 # Escalado de datos y definición de la seed
 set.seed(5)
-datosNorm <- as.data.frame(scale(datos))
-datos2Norm <- scale(datos2)
-
+datosNorm <- as.data.frame(scale(datos_matrix))
+```
+###CLustering Kmeans    
 #Comprobación de k para cluster
+```{r}
 vector_compactacion<-0
 
 for(i in 1:15){
@@ -64,20 +57,31 @@ plot(1:15, vector_compactacion, type = "b",
 
 ```{r}
 #Creación y representación de un cluster k2 para cada atributo de la tabla
-datos_k2 <- kmeans(datosNorm, centers=3, nstar=25)
+datos_k2 <- kmeans(datosNorm, centers=2, nstar=25)
 
-datos_k2$cluster
+cluster <- datos_k2$cluster
 datos_k2$size
 
 ggpairs(cbind(datos, Cluster=as.factor(datos_k2$cluster)),
-        columns=1:14, aes(colour=Cluster, alpha=0.5),
+        columns=1:13, aes(colour=Cluster, alpha=0.5),
         lower=list(continuous="points"),
         upper=list(continuous="blank"),
         axisLabels="none", switch="both") +
         theme_bw()
 ```
+###Validación externa kmeans
+
 ```{r}
-#Para realizar un cluster jerarquico aglomerativo, calculamos sus coeficientes para encontrar el método más eficaz
+table(datos$output, cluster)
+```
+
+```{r}
+res = external_validation(datos$output, cluster, method = "adjusted_rand_index",summary_stats=TRUE)
+```
+
+###Clustering jerarquico
+##Para realizar un cluster jerarquico aglomerativo, calculamos sus coeficientes para encontrar el método más eficaz
+```{r}
 m <- c( "average", "single", "complete", "ward")
 names(m) <- c( "average", "single", "complete", "ward")
 
@@ -88,15 +92,15 @@ map_dbl(m, coeficientes)
 
 ```
 
-
+###Calculamos el dendograma mediante el método ward
 ```{r}
-#Calculamos el dendograma mediante el método ward
+
 hclust.ward <- agnes(datosNorm, method = "ward")
 pltree(hclust.ward, cex = 0.3, hang =-1, main = "Dendograma de agregación (metodo Ward)")
 ```
-
+##Para calcular el número de clusters, podemos hacer aproximaciones similares a las realizadas en los cluster k-means
 ```{r}
-#Para calcular el número de clusters, podemos hacer aproximaciones similares a las realizadas en los cluster k-means
+
 #Método del codo
 fviz_nbclust(datosNorm, FUN = hcut, method = "wss")
 #Método de media de siluetas
@@ -106,12 +110,12 @@ brecha_estad <- clusGap(datosNorm, FUN = hcut, nstart = 25, K.max = 20, B = 50)
 fviz_gap_stat(brecha_estad)
 ```
 
-
+##Probamos con los valores k=2, k=3 y k= 5
 ```{r}
-#Probamos con los valores k=2, k=3 y k= 5
-tree_aux <- cutree(as.hclust(hclust.ward), k = 2)
-table(tree_aux)
-fviz_cluster(list(data = datosNorm, cluster = tree_aux))
+
+tree_aux2 <- cutree(as.hclust(hclust.ward), k = 2)
+table(tree_aux2)
+fviz_cluster(list(data = datosNorm, cluster = tree_aux2))
 
 tree_aux <- cutree(as.hclust(hclust.ward), k = 3)
 table(tree_aux)
@@ -122,12 +126,23 @@ table(tree_aux)
 fviz_cluster(list(data = datosNorm, cluster = tree_aux))
 
 ```
+
+###Validación externa jerarquico aglomeración
+
 ```{r}
-#Repetimos el experimento pero en esta ocasion para un cluster jerarquico de division
+table(datos$output, tree_aux2)
+```
+
+```{r}
+res = external_validation(datos$output, tree_aux2, method = "adjusted_rand_index",summary_stats=TRUE)
+```
+##Repetimos el experimento pero en esta ocasion para un cluster jerarquico de division
+```{r}
+
 hclust.diana <- diana(datosNorm)
-tree_aux <- cutree(as.hclust(hclust.diana), k = 2)
-table(tree_aux)
-fviz_cluster(list(data = datosNorm, cluster = tree_aux))
+tree_aux2 <- cutree(as.hclust(hclust.diana), k = 2)
+table(tree_aux2)
+fviz_cluster(list(data = datosNorm, cluster = tree_aux2))
 
 tree_aux <- cutree(as.hclust(hclust.diana), k = 3)
 table(tree_aux)
@@ -138,9 +153,13 @@ table(tree_aux)
 fviz_cluster(list(data = datosNorm, cluster = tree_aux))
 ```
 
+###Validación externa jerarquico de división
 
-Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+```{r}
+table(datos$output, tree_aux2)
+```
 
-When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+```{r}
+res = external_validation(datos$output, tree_aux2, method = "adjusted_rand_index",summary_stats=TRUE)
+```
 
-The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.

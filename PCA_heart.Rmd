@@ -1,0 +1,162 @@
+```{r}
+
+install.packages(c("caTools","caret"), repos = "http://cran.us.r-project.org")
+```
+
+
+```{r}
+set.seed(123)
+library("caret")
+library(corrplot)
+
+```
+
+```{r}
+dataframe <- read.csv("dataset/heart.csv", sep=",", row.names=NULL, header=TRUE)
+dataframe <- dataframe[,1:13]
+str(dataframe)
+
+
+names(dataframe) 
+head(dataframe)
+
+```
+
+```{r}
+
+# Escalamos y normalizamos los datos
+
+#Obtenemos los datos para el escalado a partir de los datos de entrenamiento
+pp = preProcess(dataframe, method = c("center", "scale"))
+
+#Aplicamos el escalado a train y test
+datos <- predict(pp, dataframe)
+```
+
+
+### Resumen, media y desviación típica.
+
+```{r}
+summary(datos)
+colMeans(datos) #medias
+apply(datos,2,mean) #medias
+apply(datos,2,sd) # desviaciones t?picas
+
+```
+
+### Matriz de covarianzas y matriz de correlación
+```{r}
+matriz_cov <- round(cov(datos),3)
+corrplot(matriz_cov, method = 'color')
+```
+
+
+
+### Análisis de Componentes Principales sobre la matriz de Covarianzas
+```{r}
+cp<-princomp(~.,data=data.frame(datos),cor=FALSE,scores=T)
+cp
+names(cp)
+
+```
+Proporciona, b?sicamente las desviaciones t?picas de las componentes principales
+
+
+### Desviacion típica, porcentaje de varianza explicada
+Mostramos la varianza explicada de cada cp. Se puede observar que a partir de la 9º componente ya tenemos más de un 80% de varianza acumulada, por lo que tiene sentido usar sólo estas componentes para predicciones.
+ 
+```{r}
+summary(cp)
+
+```
+
+
+
+###Autovalores 
+Los autovalores coinciden con la varianza de cada componente principal
+
+```{r}
+cp$sdev^2
+
+```
+
+
+
+###Representación gráfica de la varianza explicada
+
+```{r}
+plot(cp)
+
+```
+
+### Autovectores o matriz de cargas
+
+Estos autovectores contienen los coeficientes de las combinaciones lineales que definen las componentes principales.
+
+
+```{r}
+cp$loadings
+```
+
+
+
+### Puntuaciones de las cp en cada uno de los casos
+
+Puntuaciones (scores) o valores de las CP en cada observación o caso. Mostramos las primeras 4 instancias.
+
+```{r}
+round(predict(cp)[1:4,],3)
+```
+
+
+### Correlaciones entre las variables originales y las C.P.
+
+Estas correlaciones nos pueden permitir interpretar las Componentes principales
+```{r}
+C=round(cor(datos,predict(cp)),3)
+corrplot(C)
+
+```
+
+
+### Centros o Medias muestrales de las variables originales
+
+
+
+```{r}
+cp$center
+colMeans(datos)
+
+```
+
+# Suponiendo que se consideran sólo las 2 primeras componentes principales
+
+Matriz de correlaciones de cp con variables originales
+
+```{r}
+C=cor(datos,predict(cp)[,1:2])
+C
+
+```
+
+# Puntuaciones y representación gráfica
+
+Se representa la correlación de cada variable original con las dos primeras CP
+
+```{r}
+
+
+plot(C[,1],C[,2],pch=16,xlab="Primera C.P.",ylab="Segunda C.P.",xlim=c(-1.0,1.0),ylim=c(-1,1))
+text( C[,1],C[,2], row.names(C), cex=0.7, pos=3, col="blue")
+grid()
+abline(h=0,v=0)
+
+
+```
+
+
+
+
+
+
+

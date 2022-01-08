@@ -1,0 +1,124 @@
+
+```{r}
+
+install.packages(c("ggplot2","hrbrthemes","dplyr","tidyr","viridis","ggrepel","corrplot"), repos = "http://cran.us.r-project.org")
+```
+
+```{r}
+library(ggplot2)
+library(hrbrthemes)
+library(dplyr)
+library(tidyr)
+library(viridis)
+library(tidyverse)
+library(ggrepel)
+library(corrplot)
+```
+
+###Análisis del dataset
+```{r}
+dataframe_original <- read.csv("dataset/heart.csv", sep=",", row.names=NULL, header=TRUE)
+dataframe <- dataframe_original %>% rename(heart_attack = output, chest_pain = cp, fasting_blood_sugar = fbs)
+names(dataframe)
+summary(dataframe)
+head(dataframe)
+```
+###Gráficas de variables categóricas más importantes.
+
+```{r}
+percentage_piechart <- function(dataframe, attribute_name, size_value) {
+  count_target <- (dataframe %>% group_by(!!as.name(attribute_name)) %>% count())
+
+  data <- data.frame(group=count_target[[attribute_name]], value=count_target$n)
+
+  data <- data %>% 
+    arrange(desc(group)) %>%
+    mutate(prop = value / sum(data$value) *100) %>%
+    mutate(ypos = cumsum(prop)- 0.5*prop )
+
+  # Create a list of strings, each strings being the concatenation of an element of value and an element of prop
+  labels <- paste(data$value, round(data$prop, 1), sep="(")
+
+  ggplot(data, aes(x="", y=prop, fill=group)) +
+    geom_bar(stat="identity", width=1, color="white") +
+    coord_polar("y", start=0) +
+    theme_void() + 
+    geom_label_repel(aes(y = ypos, label = paste(labels, "%)")),
+                    size = size_value, nudge_x = 1, show.legend = FALSE) +
+    ggtitle(paste("Distribución de la variable",attribute_name)) +
+    theme(plot.title = element_text(hjust = 0.5, face="bold", size=20))
+}
+```
+
+```{r}
+dataframe$heart_attack <- factor(dataframe$heart_attack,levels = c(0,1), labels=c("NO","SI"))
+percentage_piechart(dataframe, "heart_attack", 2)
+```
+```{r}
+dataframe$sex <- factor(dataframe$sex,levels = c(0,1), labels=c("Femenino","Masculino"))
+percentage_piechart(dataframe, "sex", 2)
+```
+
+```{r}
+dataframe$chest_pain <- factor(dataframe$chest_pain,levels = c(0,1,2,3), labels=c("typical angina","atypical angina","non-anginal pain","asymptomatic"))
+percentage_piechart(dataframe, "chest_pain", 4)
+```
+```{r}
+dataframe$fasting_blood_sugar <- factor(dataframe$fasting_blood_sugar,levels = c(0,1), labels=c("NO","SI"))
+percentage_piechart(dataframe, "fasting_blood_sugar", 2)
+```
+
+
+###Gráficas para mostrar la distribución de algunas varibables numéricas.
+
+```{r}
+dataframe %>%
+  ggplot( aes(x=age)) +
+    geom_histogram( binwidth=3, fill="#69b3a2", color="#e9ecef", alpha=0.9) +
+    ggtitle("Bin size = 3") +
+    theme(
+      plot.title = element_text(size=15)
+    )
+```
+```{r}
+dataframe %>%
+  ggplot( aes(x=chol)) +
+    geom_histogram( binwidth=20, fill="#69b3a2", color="#e9ecef", alpha=0.9) +
+    ggtitle("Bin size = 20") +
+    theme(
+      plot.title = element_text(size=15)
+    )
+```
+#Maximun heart Rate Archived
+```{r}
+dataframe %>%
+  ggplot( aes(x=thalachh)) +
+    geom_histogram( binwidth=6, fill="#69b3a2", color="#e9ecef", alpha=0.9) +
+    ggtitle("Bin size = 6") +
+    theme(
+      plot.title = element_text(size=15)
+    )
+```
+
+
+
+###Gráficas para mostrar la relación entre 2 variables.
+```{r}
+ggplot(data=dataframe, aes(x=age, group=heart_attack, fill=heart_attack)) +
+    geom_density(adjust=1.5, alpha=.4)
+```
+```{r}
+ggplot(data=dataframe, aes(x=chol, group=heart_attack, fill=heart_attack)) +
+    geom_density(adjust=1.5, alpha=.4)
+```
+```{r}
+ggplot(data=dataframe, aes(x=thalachh, group=heart_attack, fill=heart_attack)) +
+    geom_density(adjust=1.5, alpha=.4)
+```
+```{r}
+matriz_cor <- round(cor(dataframe_original),3)
+corrplot(matriz_cor, method = 'color')
+```
+
+
+
