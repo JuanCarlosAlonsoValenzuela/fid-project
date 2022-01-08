@@ -1,9 +1,7 @@
 ---
-title: "R Notebook"
+title: "Red neuronal de tipo perceptrón multicapa"
 output: html_notebook
 ---
-
-This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
 
 ```{r}
 set.seed(123) # se establece la semilla para que cada vez que se ejecute el notebook desde el principio salga lo mismo
