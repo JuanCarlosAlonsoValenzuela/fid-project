@@ -7,19 +7,19 @@ Comenzamos importando las librerías necesarias
 ```{r}
 set.seed(123)
 
-install.packages("drat", repos="https://cran.rstudio.com")
-drat:::addRepo("dmlc")
-install.packages("xgboost", repos="http://dmlc.ml/drat/", type = "source")
-# install.packages("xgboost")
+#install.packages("drat", repos="https://cran.rstudio.com")
+#drat:::addRepo("dmlc")
+#install.packages("xgboost", repos="http://dmlc.ml/drat/", type = "source")
+#install.packages("xgboost")
 library(xgboost)
-# install.packages("tidyverse")
+#install.packages("tidyverse")
 library(tidyverse)
-# install.packages("drat")
+#install.packages("drat")
 library(drat)
 library("ggplot2")
-# install.packages("ggrepel")
+#install.packages("ggrepel")
 library(ggrepel)
-# install.packages("gridExtra")
+#install.packages("gridExtra")
 library(gridExtra)
 library(caret)
 ```
@@ -28,11 +28,11 @@ library(caret)
 Cargamos los datos de entrenamiento y de pruebas preprocesados (Ver notebook data_analysis.Rmd)
 
 ```{r}
-train <- read.csv("dataset/train_preprocessed.data", sep=",", row.names=NULL, header=TRUE)
+train <- read.csv("../dataset/train_preprocessed.data", sep=",", row.names=NULL, header=TRUE)
 head(train)
 dim(train)
 
-test <- read.csv("dataset/test_preprocessed.data", sep=",", row.names=NULL, header=TRUE)
+test <- read.csv("../dataset/test_preprocessed.data", sep=",", row.names=NULL, header=TRUE)
 head(test)
 dim(test)
 ```
