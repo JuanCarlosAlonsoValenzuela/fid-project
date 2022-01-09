@@ -239,7 +239,6 @@ No hay missing values.
 ### Distribución
 Este atributo sirve para representar el país nativo de un ciudadano, y pueden tener 49 posibles valores.
 
-TODO: IMPRIMIR CON UNA TABLA (VER PRÁCTICA TIDYVERSE) no cabe
 ```{r}
 percentage_piechart(train_and_test, "native_country", 4)
 ```
@@ -339,7 +338,6 @@ train_and_test %>% filter(fnlwgt %in% c("", "NA", "?")) %>% count()
 
 
 ### Valores fuera de rango
-TODO: Explicar este atributo (ver README del dataset)
 Contamos los valores inferiores a 0
 
 ```{r}
@@ -347,7 +345,6 @@ train_and_test %>% count(0 > fnlwgt)
 ```	
 
 ### Análisis de la distribución en intervalos
-TODO: CONSIDERAR HACER DISTRIBUCIÓN POR INTERVALOS DE MISMO TAMAÑO
 ```{r}
 percentage_piechart_continuous_attribute(train_and_test, "fnlwgt", 3, 100000, 100000)
 ```
@@ -394,7 +391,6 @@ train_and_test %>% count(0 == capital_gain)
 ```	
 
 Convertiremos este atributo en una variable booleana, que valdrá 0 si el capital_gain es menor que 100, y 1 en caso contrario.
-TODO
 
 ## Análisis del atributo numérico  capital_loss
 
@@ -514,8 +510,6 @@ dim(train_and_test)
 ```
 
 # Analizar relaciones entre variables (Correlación)
-TODO: Matriz de correlación
-TODO: Dejar claro que education_num es redundante
 
 # Transformación de variables
 Ya hemos convertido hours_per_week en una variable categórica
