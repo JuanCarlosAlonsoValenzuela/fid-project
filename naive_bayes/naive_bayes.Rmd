@@ -14,11 +14,11 @@ library(e1071)
 
 Cargamos los datos de entrenamiento y de pruebas preprocesados (Ver notebook data_analysis.Rmd)
 ```{r}
-train <- read.csv("dataset/train_preprocessed.data", sep=",", row.names=NULL, header=TRUE)
+train <- read.csv("../dataset/train_preprocessed.data", sep=",", row.names=NULL, header=TRUE)
 head(train)
 dim(train)
 
-test <- read.csv("dataset/test_preprocessed.data", sep=",", row.names=NULL, header=TRUE)
+test <- read.csv("../dataset/test_preprocessed.data", sep=",", row.names=NULL, header=TRUE)
 head(test)
 dim(test)
 ```
@@ -219,3 +219,4 @@ cm_test
 
 ```{r}
 ```
+
