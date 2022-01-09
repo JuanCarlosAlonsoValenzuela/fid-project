@@ -70,7 +70,7 @@ percentage_piechart <- function(dataframe, attribute_name, size_value) {
     theme_void() + 
     geom_label_repel(aes(y = ypos, label = paste(labels, "%)")),
                     size = size_value, nudge_x = 1, show.legend = FALSE) +
-    ggtitle(paste("Distribución de la variable ")) +
+    ggtitle(paste("Distribución de la variable", attribute_name)) +
     theme(plot.title = element_text(hjust = 0.5, face="bold", size=20))
 }
 ```
@@ -556,5 +556,3 @@ train_preprocessed <- preprocessing(train)
 test_preprocessed <- preprocessing(test)
 # write.csv(test_preprocessed, "dataset/test_preprocessed.data", row.names=FALSE)
 ```
-
-TODO: Explicar que la normalización de los atributos numéricos se llevará a cabo cuando un algoritmo lo requiera (e.g., KNN)
