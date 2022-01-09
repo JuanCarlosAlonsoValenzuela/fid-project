@@ -295,6 +295,7 @@ percentage_piechart_continuous_attribute <- function(dataframe, attribute_name, 
 ```	
 
 ## Análisis del atributo continuo age
+
 ### Missing values o valores nulos
 Podemos comprobar que no existen valores nulos para el campo age
 ```{r}	
@@ -318,8 +319,16 @@ Imprimimos la distribución del atributo age, agrupado en intervalos de 10 años
 percentage_piechart_continuous_attribute(train_and_test, "age", 5, 10, 10)
 ```
 
-Podemos ver que la mayoría de las instancias se encuentran en el intervalo de edad de entre 20 y 40 años (x.x%)
+Podemos ver que la mayoría de las instancias se encuentran en el intervalo de edad de entre 20 y 40 años (73.1%)
 Existe una minoría de trabajadores que tienen 80 (0.3%) y 90 (0.1%) años. Estos valores podrían considerarse outliers.
+
+### Distribución de la población por edad
+
+Además, se agrega un histograma sencillo donde se puede ver que gran parte de la población esta entre los 0 y 50 años.
+```{r}
+ggplot(train_and_test, aes(x=age)) + geom_histogram(binwidth=1)
+```
+
 
 ## Análisis del atributo continuo  fnlwgt
 ### Missing values o valores nulos
@@ -607,4 +616,85 @@ train_preprocessed <- preprocessing(train)
 ```{r}
 test_preprocessed <- preprocessing(test)
 # write.csv(test_preprocessed, "dataset/test_preprocessed.data", row.names=FALSE)
+```
+
+# Análisis de comparación de variables
+
+## Variables has_capital_gain y has_capital_loss
+
+En el siguiente fragmento de código se relacionan los atributos "has_capital_gain" y "has_capital_loss" con el target, para comprobar si la ganancia o perdida de capital tiene un gran impacto en si el ciudadano gana mas de 50k o no al año.
+```{r}
+
+ggplot(train_and_test, aes(x=has_capital_gain, fill=target)) + geom_bar(position="dodge")
+ggplot(train_and_test, aes(x=has_capital_loss, fill=target)) + geom_bar(position="dodge")
+```
+
+Viendo ambos graficos, se llega a la conclusión que el tener ganancia o perdida de capital no afecta mucho a si un ciudadano gana mas de 50k o no al año.
+
+## Comparacion estado civil y target
+
+```{r}
+ggplot(train_and_test, aes(x=marital_status, fill=target)) + geom_bar(position = "fill") + ylab("percentage") + stat_count(geom = "text", aes(label = stat(count)), position=position_fill(vjust=0.5), colour="white") + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
+```
+
+## Comparacion sexo y target
+
+```{r}
+ggplot(train_and_test, aes(x=sex, fill=target)) + geom_bar(position = "dodge")
+```
+
+
+## Comparacion education y target
+
+```{r}
+ggplot(train_and_test, aes(x=education, fill=target)) + geom_bar(position = "fill") + ylab("percentage") + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
+
+```
+
+## Comparacion workclass y target
+
+```{r}
+ggplot(train_and_test, aes(x=workclass, fill=target)) + geom_bar(position = "fill") + ylab("percentage") + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
+
+```
+
+## Graficas de capital gain y loss
+
+En las siguientes graficas se demuestra que gran parte de la población no posee capital_gain ni capital_loss.
+
+```{r}
+
+ggplot(train_and_test, aes(capital_gain)) + geom_histogram()
+ggplot(train_and_test, aes(capital_loss)) + geom_histogram()
+```
+
+## Graficas de final weight
+
+```{r}
+ggplot(train_and_test, aes(fnlwgt)) + geom_histogram() + labs(x = "Final weight")
+```
+
+## Graficas de education
+
+```{r}
+ggplot(train_and_test, aes(education, fill=education)) + geom_bar() + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
+```
+
+La grafica de education_num deberia ser muy parecida
+```{r}
+ggplot(train_and_test, aes(education_num)) + geom_bar()
+```
+
+## Comparativa de horas por semana y target
+
+```{r}
+ggplot(train_and_test, aes(x=target, y=hours_per_week)) + geom_boxplot()
+```
+
+## Comparativa de edad y target
+
+```{r}
+ggplot(train_and_test, aes(x=target, y=age)) + geom_boxplot()
+
+ggplot(train_and_test, aes(x=age, fill=target)) + geom_bar(position = "fill") + ylab("proportion")
 ```
