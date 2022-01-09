@@ -5,22 +5,22 @@ En este notebook se ha realizado una clasificación del conjunto de entrenamient
 Se realiza la carga de las librerías necesarias.
 ```{r}
 set.seed(123)
-install.packages("randomForest")
+#install.packages("randomForest")
 library(randomForest)
-install.packages("caTools")
+#install.packages("caTools")
 library(caTools)
-install.packages("caret")
+#install.packages("caret")
 library("caret")
 ```
 
 Cargamos los datos de entrenamiento y de pruebas preprocesados (Ver notebook data_analysis.Rmd)
 
 ```{r}
-train <- read.csv("dataset/train_preprocessed.data", sep=",", row.names=NULL, header=TRUE)
+train <- read.csv("../dataset/train_preprocessed.data", sep=",", row.names=NULL, header=TRUE)
 head(train)
 dim(train)
 
-test <- read.csv("dataset/test_preprocessed.data", sep=",", row.names=NULL, header=TRUE)
+test <- read.csv("../dataset/test_preprocessed.data", sep=",", row.names=NULL, header=TRUE)
 head(test)
 dim(test)
 ```
