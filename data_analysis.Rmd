@@ -32,7 +32,7 @@ head(test)
 
 TODO: Describir el número de atributos, número de instancias (training y test), origen del dataset, objetivo de la clasificación, etc.
 
-Cargamos el  conjunto que contiene la combinación del conjunto de entrenamiento y pruebas, el archivo que contiene dicho conjunto ha sido creado ejecutando el script "join_training_and_test.R"
+Cargamos el conjunto que contiene la combinación del conjunto de entrenamiento y pruebas, el archivo que contiene dicho conjunto ha sido creado ejecutando el script "join_training_and_test.R"
 ```{r}
 # Read training and test set:
 train_and_test <- read.table("dataset/train_and_test.data", sep=",", row.names=NULL, header=TRUE)
@@ -91,98 +91,155 @@ También analizaremos si hay alguna correlación entre cada atributo y el target
 Detectaremos si hay valores no presentes en la especificación del dataset o typos
 Eliminaremos y detectaremos outliers (atributos continuos)
 
-## Análisis del atributo categórico  workclass
+## Análisis del atributo categórico workclass
 
 ### Distribución
-Este atributo sirve para... puede tener los valores...
+Este atributo categórico sirve para representar el tipo de entidad para la que trabaja el ciudadano, y puede tener los siguientes 8 valores:
+- Federal-gov
+- Local-gov
+- Never-worked
+- Private
+- Self-emp-inc
+- Self-emp-not-inc
+- State-gov
+- Without-pay
+
 ```{r}
 percentage_piechart(train_and_test, "workclass", 4)
 ```
 
-La clase mayoritaria (x.x%) es "Private" con una mayoría significativa
-Hay x missing values (x%)
-Valores no especificados en el dataset/typos: x
+La clase mayoritaria (69.4%) es "Private" con una mayoría significativa
+Hay 2799 missing values (5.7%)
 
 ## Análisis del atributo categórico education
 
 ### Distribución
-Este atributo sirve para... puede tener los valores...
+Este atributo sirve para indicar el máximo nivel educativo alcanzado por un ciudadano, y puede tener los siguientes 16 valores:
+- 1st-4th
+- 5th-6th
+- 7th-8th
+- 9th
+- 10th
+- 11th
+- 12th
+- Assoc-acdm
+- Assoc-voc
+- Bachelors
+- Doctorate
+- HS-grad
+- Masters
+- Preschool
+- Prof-school
+- Some-college
 ```{r}	
 percentage_piechart(train_and_test, "education", 3)
 ```
 
-La clase mayoritaria (x.x%) es "XXX" con una mayoría significativa
-Hay x missing values (x%)
-Valores no especificados en el dataset/typos: x
+La clase mayoritaria es "HS-grad" con un 32.3%, y luego le sigue "Some-college" con un 22.3%
+No tiene missing values.
 
 
 ## Análisis del atributo categórico marital_status
 
 ### Distribución
-Este atributo sirve para... puede tener los valores...
+Este atributo sirve para representar el estado civil de un ciudadano, y puede tener los siguientes valores:
+- Divorced
+- Married-AF-spouse
+- Married-civ-spouse
+- Married-spouse-absent
+- Never-married
+- Separated
+- Widowed
 
 ```{r}
 percentage_piechart(train_and_test, "marital_status", 5)
 ```
 
-La clase mayoritaria (x.x%) es "XXX"
-Hay x missing values (x%)
-Valores no especificados en el dataset/typos: x
+La clase mayoritaria es "Married-civ-spouse" con un 45.8% (22379) y le sigue "Never-married" con un 33%, que representa 16117 ciudadanos.
+No hay missing values.
 
 ## Análisis del atributo categórico occupation
 
 ### Distribución
-Este atributo sirve para... puede tener los valores...
+Este atributo sirve para representar la profesión o clase de trabajo de un ciudadano, y puede tener los siguientes valores:
+- Adm-clerical
+- Armed-Forces
+- Craft-repair
+- Exec-managerial
+- Farming-fishing
+- Handlers-cleaners
+- Machine-op-inspct
+- Other-service
+- Priv-house-serv
+- Prof-specialty
+- Protective-serv
+- Sales
+- Tech-support
+- Transport-moving
+
 ```{r}
 percentage_piechart(train_and_test, "occupation", 5)
 ```
 
-La clase mayoritaria (x.x%) es "XXX"
-Hay x missing values (x%)
-Valores no especificados en el dataset/typos: x
+La clase mayoritaria es "Prof-specialty" con un 12.6%, y le siguen muy de cerca "Farming-fishing" y "Craft-repair", ambos con 12.5%.
+Esta clase tiene 2809 missing values (5.8%)
 
 
 ## Análisis del atributo categórico relationship
 
 ### Distribución
-Este atributo sirve para... puede tener los valores...
+Este atributo sirve para representar la clase de relación de un ciudadano, y puede tener los siguientes valores:
+- Husband
+- Wife
+- Not-in-family
+- Other-relative
+- Own-child
+- Unmarried
+
 ```{r}
 percentage_piechart(train_and_test, "relationship", 6)
 ```
 
-La clase mayoritaria (x.x%) es "XXX"
-Hay x missing values (x%)
-Valores no especificados en el dataset/typos: x
+La clase mayoritaria (40.4%) es "Husband" con una mayoria significativa.
+No hay missing values.
 
 ## Análisis del atributo categórico race
 
 ### Distribución
-Este atributo sirve para... puede tener los valores...
+Este atributo sirve para representar la raza de un ciudadano, y puede tener los siguientes valores:
+- White
+- Black
+- Asian-Pac_islander
+- Amer-Indian-Eskimo
+- Other
+
 ```{r}
 percentage_piechart(train_and_test, "race", 6)
 ```
 
-La clase mayoritaria (x.x%) es "XXX"
-Hay x missing values (x%)
-Valores no especificados en el dataset/typos: x
+La clase mayoritaria es "White" con 85.5%, con una mayoria significativa.
+No hay missing values.
 
 ## Análisis del atributo categórico sex
 
 ### Distribución
-Este atributo sirve para... puede tener los valores...
+Este atributo sirve para representar el sexo de un ciudadano, y sus posibles valores son:
+- Male
+- Female
+
 ```{r}
 percentage_piechart(train_and_test, "sex", 6)
 ```
 
-La clase mayoritaria (x.x%) es "XXX"
-Hay x missing values (x%)
-Valores no especificados en el dataset/typos: x
+La clase mayoritaria es "Male" con 66.8%, siguiendole Female con 33.2%.
+No hay missing values.
 
 ## Análisis del atributo categórico native_country
 
 ### Distribución
+Este atributo sirve para representar el país nativo de un ciudadano, y pueden tener 49 posibles valores.
+
 TODO: IMPRIMIR CON UNA TABLA (VER PRÁCTICA TIDYVERSE) no cabe
-Este atributo sirve para... puede tener los valores...
 ```{r}
 percentage_piechart(train_and_test, "native_country", 4)
 ```
@@ -190,13 +247,10 @@ percentage_piechart(train_and_test, "native_country", 4)
 ```{r}
 countries_distribution <- train_and_test %>% group_by(native_country) %>% count()
 ```
-La clase mayoritaria (x.x%) es "XXX"
-Hay x missing values (x%)
-Valores no especificados en el dataset/typos: x
-
+La clase mayoritaria (89.7%) es "United-States"
+Hay 857 missing values (1.8%)
 
 # Analizar missing values en todo el dataset
-
 
 Analizar distribución de los valores (pie chart) de cada atributo
 Los missing values se identifican mediante un signo de interrogación
@@ -240,7 +294,7 @@ percentage_piechart_continuous_attribute <- function(dataframe, attribute_name, 
 }
 ```	
 
-## Análisis del atributo continuo  age
+## Análisis del atributo continuo age
 ### Missing values o valores nulos
 Podemos comprobar que no existen valores nulos para el campo age
 ```{r}	
@@ -301,8 +355,8 @@ train_and_test %>% filter(education_num %in% c("", "NA", "?")) %>% count()
 ```{r}
 train_and_test %>% count(0 > education_num | education_num >16)
 ```	
-### Análisis de la distribución en intervalos
 
+### Análisis de la distribución en intervalos
 ```{r}
 percentage_piechart_continuous_attribute(train_and_test, "education_num", 3, 1, 1)
 ```
@@ -375,7 +429,7 @@ Crearemos los intervalos:
 - partime (0-20 horas)
 - fulltime (20-40 horas)
 - overtime (40-60 horas)
-- more(+60 horas)
+- more (+60 horas)
 ```{r}
 # Split the values of hours_per_week into intervals of 20
 convert_hours_to_categorical <- function(hours) {
