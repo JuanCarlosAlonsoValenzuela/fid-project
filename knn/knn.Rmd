@@ -14,46 +14,40 @@ require(caret)
 train_data <- read.csv("../dataset/train_preprocessed.data", sep=",")
 test_data <- read.csv("../dataset/test_preprocessed.data", sep=",")
 
+transform_data <- function(dataframe) {
+    dataframe <- transform(dataframe, age=as.integer(age), workclass=as.factor(workclass),
+        fnlwgt=as.numeric(fnlwgt), education=as.factor(education), education_num=as.integer(education_num),
+        marital_status=as.factor(marital_status), occupation=as.factor(occupation), relationship=as.factor(relationship),
+        race=as.factor(race), sex=as.factor(sex), capital_gain=as.numeric(capital_gain), capital_loss=as.numeric(capital_loss),
+        hours_per_week=as.integer(hours_per_week), native_country=as.factor(native_country), target=as.factor(target),
+        hours_per_week_categorical=as.factor(hours_per_week_categorical),has_capital_gain=as.factor(has_capital_gain),
+        has_capital_loss=as.factor(has_capital_loss)
+    )
+
+    return(dataframe)
+}
+
+train_data <- transform_data(train_data)
+test_data <- transform_data(test_data)
+
 ```
 
 ```{r}
+selected_attributes <- c("age", "workclass", "education", "marital_status", "occupation", "relationship", 
+                         "race", "sex", "native_country", "hours_per_week_categorical", "has_capital_gain", "has_capital_loss")
+
 y_train <- factor(train_data$target, levels=rev(levels(factor(test_data$target))))
-x_train <- train_data[0:13]
+x_train <- train_data[selected_attributes]
 y_test <- factor(test_data$target, levels=rev(levels(factor(test_data$target))))
-x_test <- test_data[0:13]
+x_test <- test_data[selected_attributes]
 
-x_train$workclass <- factor(x_train$workclass)
-x_train$education <- factor(x_train$education)
-x_train$marital_status <- factor(x_train$marital_status)
-x_train$occupation <- factor(x_train$occupation)
-x_train$relationship <- factor(x_train$relationship)
-x_train$race <- factor(x_train$race)
-x_train$sex <- factor(x_train$sex)
-
-x_test$workclass <- factor(x_test$workclass)
-x_test$education <- factor(x_test$education)
-x_test$marital_status <- factor(x_test$marital_status)
-x_test$occupation <- factor(x_test$occupation)
-x_test$relationship <- factor(x_test$relationship)
-x_test$race <- factor(x_test$race)
-x_test$sex <- factor(x_test$sex)
-
-# min-max normalization
+# min-max normalización
 normalize <- function(x_train, x_test) {
   return ((x_train - min(x_train, x_test)) / (max(x_train, x_test) - min(x_train, x_test)))
 }
 
 x_train$age <- normalize(x_train$age, x_test$age)
-x_train$fnlwgt <- normalize(x_train$fnlwgt, x_test$fnlwgt)
-x_train$capital_gain <- normalize(x_train$capital_gain, x_test$capital_gain)
-x_train$capital_loss <- normalize(x_train$capital_loss, x_test$capital_loss)
-x_train$hours_per_week <- normalize(x_train$hours_per_week, x_test$hours_per_week)
-
 x_test$age <- normalize(x_test$age, x_train$age)
-x_test$fnlwgt <- normalize(x_test$fnlwgt, x_train$fnlwgt)
-x_test$capital_gain <- normalize(x_test$capital_gain, x_train$capital_gain)
-x_test$capital_loss <- normalize(x_test$capital_loss, x_train$capital_loss)
-x_test$hours_per_week <- normalize(x_test$hours_per_week, x_train$hours_per_week)
 
 # one-hot
 dmy <- dummyVars(" ~ .", data=x_train)
@@ -61,6 +55,21 @@ x_train <- data.frame(predict(dmy, newdata = x_train))
 
 dmy <- dummyVars(" ~ .", data=x_test)
 x_test <- data.frame(predict(dmy, newdata = x_test))
+
+# creo una columna
+x_test$native_country.Holand.Netherlands <- 0
+
+# elimino las columnas que no se usan
+x_train$sex.Male <- NULL
+x_train$has_capital_gain.NO_capital_gain <- NULL
+x_train$has_capital_loss.NO_capital_loss <- NULL
+
+x_test$sex.Male <- NULL
+x_test$has_capital_gain.NO_capital_gain <- NULL
+x_test$has_capital_loss.NO_capital_loss <- NULL
+
+# reordeno las columnas para que estén iguales que en train
+x_test <- x_test[names(x_train)]
 ```
 
 ```{r}
@@ -74,10 +83,13 @@ model <- train(x_train,
                method = "knn", 
                tuneGrid = knn_grid, 
                trControl = trainControl(method = "repeatedcv", summaryFunction = prSummary, repeats = 2, number = 5, sampling = "down"), # number es el núm de veces que vuelve a entrenar
-               preProcess = c("center", "scale"))
+               preProcess = c("center", "scale", "zv"))
 
 #imprimo el modelo
 model
+```
+```{r}
+confusionMatrix(predict(model, newdata = x_train), y_train, mode = "prec_recall")
 ```
 
 ```{r}
