@@ -12,7 +12,7 @@ Comenzamos leyendo el conjunto de entrenamiento y el de pruebas, añadiendo tamb
 ```{r}
 headers <- c("age","workclass","fnlwgt","education","education_num","marital_status","occupation","relationship","race","sex","capital_gain","capital_loss","hours_per_week","native_country", "target")
 # Read the training set:
-train <- read.table("dataset/adult.data", sep=",", row.names=NULL)
+train <- read.table("../dataset/adult.data", sep=",", row.names=NULL)
 
 # Add header names:
 names(train) <- headers
@@ -23,7 +23,7 @@ head(train)
 Cargamos el conjunto de pruebas.
 ```{r}
 # Read the test set:
-test <- read.table("dataset/adult.test", sep=",", row.names=NULL)
+test <- read.table("../dataset/adult.test", sep=",", row.names=NULL)
 # Add header names:
 names(test) <- headers
 dim(test)
@@ -35,7 +35,7 @@ TODO: Describir el número de atributos, número de instancias (training y test)
 Cargamos el conjunto que contiene la combinación del conjunto de entrenamiento y pruebas, el archivo que contiene dicho conjunto ha sido creado ejecutando el script "join_training_and_test.R"
 ```{r}
 # Read training and test set:
-train_and_test <- read.table("dataset/train_and_test.data", sep=",", row.names=NULL, header=TRUE)
+train_and_test <- read.table("../dataset/train_and_test.data", sep=",", row.names=NULL, header=TRUE)
 head(train_and_test)
 dim(train_and_test)
 ```
@@ -605,17 +605,17 @@ percentage_piechart(train_and_test, "has_capital_loss", 3.5)
 ```	
 
 ```{r}
-# write.csv(train_and_test, "dataset/train_and_test_preprocessed.data", row.names=FALSE)	
+# write.csv(train_and_test, "../dataset/train_and_test_preprocessed.data", row.names=FALSE)	
 ```	
 
 ```{r}
 train_preprocessed <- preprocessing(train)
-# write.csv(train_preprocessed, "dataset/train_preprocessed.data", row.names=FALSE)
+# write.csv(train_preprocessed, "../dataset/train_preprocessed.data", row.names=FALSE)
 ```
 
 ```{r}
 test_preprocessed <- preprocessing(test)
-# write.csv(test_preprocessed, "dataset/test_preprocessed.data", row.names=FALSE)
+# write.csv(test_preprocessed, "../dataset/test_preprocessed.data", row.names=FALSE)
 ```
 
 # Análisis de comparación de variables
@@ -697,4 +697,7 @@ ggplot(train_and_test, aes(x=target, y=hours_per_week)) + geom_boxplot()
 ggplot(train_and_test, aes(x=target, y=age)) + geom_boxplot()
 
 ggplot(train_and_test, aes(x=age, fill=target)) + geom_bar(position = "fill") + ylab("proportion")
+```
+
+```{r}
 ```
