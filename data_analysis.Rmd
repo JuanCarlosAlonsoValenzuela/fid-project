@@ -30,6 +30,8 @@ dim(test)
 head(test)
 ```
 
+TODO: Describir el número de atributos, número de instancias (training y test), origen del dataset, objetivo de la clasificación, etc.
+
 Cargamos el conjunto que contiene la combinación del conjunto de entrenamiento y pruebas, el archivo que contiene dicho conjunto ha sido creado ejecutando el script "join_training_and_test.R"
 ```{r}
 # Read training and test set:
@@ -351,7 +353,7 @@ percentage_piechart_continuous_attribute(train_and_test, "fnlwgt", 3, 100000, 10
 ```
 
 ## Análisis del atributo continuo  education_num
-Este atributo es redundante con respecto a education, por lo que será suprimido para evitar redundancia
+Este atributo es redundante con respecto a education, por lo que será suprimido para evitar redundancia (TODO: Mostrar en correlation matrix)
 ### Missing values o valores nulos
 No hay valores nulos en este atributo
 ```{r}
